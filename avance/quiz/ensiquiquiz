@@ -1,0 +1,48 @@
+#! /usr/bin/env python3
+
+import os
+from misc import try_pull
+from quiz import Quiz
+
+def print_help():
+    print("Usage: {} [option]\n".format(os.sys.argv[0]))
+    print("         options possibles:\n")
+    print("           * --all: lance le quiz sur toutes les questions,")
+    print("                    y compris celles qui ont déjà obtenu le")
+    print("                    score maximum. (défaut: non)\n")
+    print("           * --random: choisit un ordre aléatoire pour")
+    print("                    l'affichage des questions du quiz. ")
+    print("                    (défaut: non)\n")
+    print("           * --help: affiche cette aide.\n")
+
+def main():
+    use_git = True
+    random = False
+    run_all = False
+
+    for arg in os.sys.argv[1:]:
+        if arg == "--no-git":
+            use_git = False
+        elif arg == "--random":
+            random = True
+        elif arg == "--all":
+            run_all = True
+        elif arg == "--help":
+            print_help()
+            exit(0)
+        else:
+            print("[abort] Argument {} inconnu!".format(arg))
+            exit(1)
+
+    if use_git:
+        try_pull("ensiquiquiz")
+    q = Quiz("data.yaml",
+             "../../.progress/progress.yaml",
+             use_git=use_git,
+             run_all=run_all,
+             run_random=random)
+    q.print_intro()
+    q.play()
+
+if __name__ == "__main__":
+    main()

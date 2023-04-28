@@ -1,0 +1,1160 @@
+title: Evaluation du niveau de base
+lvl: "base"
+feedbackFinal: 'Retour global:'
+questions:
+- title: "Segmentation fault"
+  category: Debug
+  type: M
+  score: 1.0
+  description: "Lors de l'exécution d'un programme, le message 'Segmentation fault' s'affiche.
+  Quel(s) outil(s) permet(tent) de trouver rapidement et précisément à quelle ligne du programme source se produit cette erreur?"
+  answers:
+    - ko: Les options du compilateur -Wall -Wextra
+      feedback: Ces options affichent des avertissements qui portent sur la correction syntaxique du code C.
+    - ko: valgrind seul
+      feedback: Sans symboles de debug inclus dans le binaire généré (option -g à la compilation), valgrind ne sera pas capable de retrouver la ligne.
+    - ko: gdb/ddd seul
+      feedback: Sans symboles de debug inclus dans le binaire généré (option -g à la compilation), gdb/ddd ne sera pas capable de retrouver la ligne.
+    - ko: Ajouter des printf dans le programme
+      feedback: Mais non! On a dit _rapidement_...
+    - ok: L'option -g du compilateur et valgrind
+      feedback: Dans le cas d'une segfault, le dernier message affiché par valgrind donnera la ligne de code C qui a généré l'accès illicite, à condition que le programme ait été compilé avec l'option -g.
+    - ok: L'option -g du compilateur et gdb/ddd
+      feedback: gdb/ddd s'arrête automatiquement sur la segfault et indique l'instruction qui génère cette faute, à condition que le programme ait été compilé avec l'option -g.
+
+- title: "Agecanonix"
+  category: Debug
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int *age;
+        *age = 20;
+        printf("Vous avez %d ans\\n", *age);
+    </pre>
+    Dans la liste suivante, quels outils peuvent détecter les erreurs du code ci-dessus?
+  answers:
+    - ok: L'option -g du compilateur et gdb/ddd
+      feedback: Ici on applique l'opérateur * à un pointeur qui n'a pas été initialisé. L'exécution du code a de fortes chances de générer une segfault, et l'utilisation de gdb/ddd permet de s'arrêter sur la ligne de code générant l'accès illicite (à condition que le programme ait été compilé avec l'option -g).
+    - ok: L'option -g du compilateur et valgrind
+      feedback: Ici on applique l'opérateur * à un pointeur qui n'a pas été initialisé. L'exécution du code a de fortes chances de générer une segfault, et l'utilisation de valgrind permet d'identifier une écriture mémoire invalide et de reporter la ligne de code générant l'accès illicite (à condition que le programme ait été compilé avec l'option -g).
+    - ko: La trace du printf
+      feedback: Si le programme segfault sur l'écriture de *age, on n'atteindra jamais le printf().
+    - ok: Les options du compilateur -Wall -Wextra
+      feedback: Dans ce cas, le compilateur détecte qu'on déréférence un pointeur dont la valeur n'a pas été initialisée.
+
+- title: "Ah ben m... alors !"
+  category: Debug
+  type: M
+  score: 1.0
+  description: "Lors de la compilation et l'exécution d'un programme, aucun message d'erreur ne s'affiche mais les résultats obtenus ne sont pas du tout ceux attendus. Cochez dans la liste suivante les affirmations correctes."
+  answers:
+    - ko: gdb/ddd arrêtera automatiquement l'exécution sur la ligne du programme où le bug se trouve
+      feedback: Non, gdb ne s'arrête que sur un point d'arrêt positionné par l'utilisateur (breakpoint), ou si le programme en cours de débug est arrêté brutalement par le système d'exploitation (segfault).
+    - ok: gdb/ddd permet d'exécuter le programme pas à pas
+      feedback: Oui, on place un point d'arrêt avec la commande b, on lance le programme avec la commande r, qui s'arrête au niveau du breakpoint, puis on avance pas à pas avec la commande n (prochaine ligne de code sans entrer dans les fonctions appelées) ou s (prochaine ligne de code en entrant des les fonctions appelées)
+    - ko: valgrind permet d'exécuter le programme pas à pas
+      feedback: Il n'est pas possible de placer des points d'arrêts (breakpoint) dans valgrind.
+    - ok: valgrind affiche tous les accès mémoire illicites effectués par le programme
+      feedback: Oui, c'est pour ça qu'il a été conçu!
+
+- title: "pas très for"
+  category: Debug
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int tab[42];
+        for (int i = 0; i < 42; i++);
+        {
+            tab[i] = i;
+        }
+    </pre>
+    Le programme ci-dessus ne fonctionne pas comme attendu : le corps de la boucle for est en fait vide, puisque la ligne for(...) se termine par un ';'. Dans la liste suivante, cochez les affirmations qui vous semblent correctes.
+  answers:
+    - ko: Le code compile parce que la variable i existe toujours après l'exécution de la boucle
+      feedback: Non, on utilise ici la syntaxe C99 qui permet de définir la variable d'itération dans la boucle, for (int i, ...). En sortie de boucle, cette variable locale n'existe plus.
+    - ok: Le compilateur indique que i n'existe pas lors de l'affectation tab[i] = i;
+      feedback: Oui, une bête analyse syntaxique permet de détecter cette erreur.
+    - ok: Le compilateur indique que la syntaxe de la ligne où se trouve le for est suspecte
+      feedback: Vrai, si votre compilateur est pas trop bête/ancien/...
+    - ok: Un meilleur formatage du code (coding style) permettrait d'identifier tout de suite le problème
+      feedback: Vrai, si on considère que le ; doit se trouver sur une ligne différente du for.
+
+- title: bon, c'est "pour le moral"
+  category: Chaines de caracteres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char *bon = "pour le moral";
+    </pre>
+    Quelle est la taille, en octets (1 caractère = 1 octet), de la mémoire utilisée pour stocker la chaine
+    pointée par bon ?
+  answers:
+    - ko: "13"
+      feedback: Il y'a bien 13 lettres, mais une chaine de caractères en C se termine toujours par le caractère spécial de fin de chaine '\0'.
+    - ok: "14"
+      feedback: Ben oui, \0, tout ça.
+    - ko: "15"
+      feedback: Attention, \0 c'est bien qu'un seul caractère, à ne pas confondre avec "\0" qui est une chaine de caractères qui en contient 3 ('\', '0' et '\0')
+    - ko: On ne peut pas savoir
+      feedback: On ne peut pas savoir si on n'a pas lu la fiche "Chaine de caractères" du kit de démarrage.
+
+- title: What the hell
+  category: Chaines de caracteres
+  type: M
+  score: 1.0
+  description: |
+    Soit deux chaines de caractères définies comme suit :
+    <pre>
+        char chaine1[6] = "hello";
+        char chaine2[5] = "you!";
+    </pre>
+    On cherche à recopier le contenu de la chaine 1 dans la chaine 2, à savoir que la chaine 2 contienne "hell" après exécution du code solution. Voici une compilation de solutions proposées pour effectuer ce traitement.
+    <pre>
+        /* Solution 1 */
+        chaine2 = chaine1;
+
+        /* Solution 2 */
+        for (size_t i = 0; i < strlen(chaine2); i++) {
+            chaine2[i] = chaine1[i];
+        }
+
+        /* Solution 3 */
+        for (size_t i = 0; i < 5; i++) {
+            chaine2[i] = chaine1[i];
+        }
+
+        /* Solution 4 */
+        for (size_t i = 0; i < 4; i++) {
+            chaine2[i] = chaine1[i];
+        }
+    </pre>
+    Parmi ces solutions...
+  answers:
+    - ko: ... la solution 1 fonctionne.
+      feedback: En plus d'être syntaxiquement incorrecte (pour le compilateur, les types de chaine1 et chaine2 sont différents du fait de la taille des tableaux qu'ils représentent), on n'effectue pas de copie profonde de cette façon. Au mieux, on ferait en sorte que chaine1 référence le même tableau que chaine2, si chaine1 et chaine2 étaient de même type.
+    - ok: ... la solution 2 fonctionne.
+      feedback: On parcourt tous les éléments de la chaine la plus courte, on utilise strlen() pour récupérer la taille de la chaine (sans compter le \0).
+    - ko: ... la solution 3 fonctionne.
+      feedback: Raté, strlen(chaine2) == 4, donc on accès à ses éléments de chaine2[0] jusqu'à chaine2[3]. Ici on va faire référence à chaine2[4] qui sort du tableau => accès mémoire illicite.
+    - ok: ... la solution 4 fonctionne.
+      feedback: Oui, mais si vous écrivez un truc comme ça on vous reprendra de volée. Utilisez strlen(chaine2) plutôt ici.
+
+- title: Charabia
+  category: Chaines de caracteres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char abia[2] = "k";
+    </pre>
+    Quelles sont les affirmations correctes parmi celles proposées ci-dessous...
+  answers:
+    - ko: abia est une chaine composée de 1 caractère
+      feedback: Toute chaine de caractères en C se termine par le caractère spécial '\0'. Du coup, on a bien deux caractères ici (k et \0).
+    - ok: abia est une chaine composée de 2 caractères
+      feedback: Voilà. 'k' et '\0'.
+    - ko: abia est une chaine composée de 3 caractères
+      feedback: Attention, '\0' ne représente bien qu'un seul caractère, à ne pas confondre avec "\0" qui est une chaine de caractères qui en contient 3 ('\', '0' et '\0')
+    - ok: abia[0] contient le caractère 'k'
+      feedback: Oui, une chaine de caractères peut être vue comme un tableau dont les éléments sont des caractères, et les tableaux sont indicés à partir de l'indice 0 en C.
+    - ko: abia[1] contient le caractère 'k'
+      feedback: Non, une chaine de caractères peut être vue comme un tableau dont les éléments sont des caractères, et les tableaux sont indicés à partir de l'indice 0 en C.
+    - ko: abia[2] contient le caractère 'k'
+      feedback: abia[2] provoque un dépassement du tableau de taille 2 (contenant les valeurs abia[0] et abia[1]), et donc un accès mémoire illicite.
+    - ko: abia[0] contient le caractère '\0'
+      feedback: Non, abia[0] == 'k'.
+    - ok: abia[1] contient le caractère '\0'
+      feedback: Vrai, une chaine est toujours terminée par le caractère \0 en C.
+    - ko: abia[2] contient le caractère '\0'
+      feedback: abia[2] provoque un dépassement du tableau de taille 2 (contenant les valeurs abia[0] et abia[1]), et donc un accès mémoire illicite.
+
+- title: Tank à ski
+  category: Chaines de caracteres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char dassault[] = "poniatowski";
+        char *leclerc;
+        leclerc = &dassault[7];
+        leclerc[0] = dassault[4];
+        leclerc++;
+        printf("Le general %c %s\\n", dassault[7], leclerc);
+    </pre>
+    Ce programme affiche ...
+  answers:
+    - ko: Le general poniatowski
+      feedback: la chaine "poniatowski" est modifiée par le pointeur leclerc, qui pointe sur le 8e caractère. Le format %c permet d'afficher un caractère.
+    - ko: Le general
+      feedback: il faudrait pour obtenir cet affichage que dassault[7] == \0 et leclerc == "", ce qui n'a pas grand sens ici.
+    - ko: Le general w wski
+      feedback: on initialise leclerc avec l'adresse du 8ème caractère de la chaine dassault. On le remplace par le 5e via le pointeur leclerc, il devient donc 'a' et pas 'w'.
+    - ok: Le general a ski
+      feedback: on initialise leclerc avec l'adresse du 8ème caractère de la chaine dassault. leclerc est une chaine prenant successivement les valeurs "wski", "aski", "ski". leclerc pointe sur une partie de la zone mémoire utilisée par dassault et peut donc modifier des caractères de dassault.
+    - ko: Le general a wski
+      feedback: leclerc++ fait pointer le pointeur leclerc sur le caractère suivant, ici 's'.
+
+- title: Aglagla
+  category: Entrees-Sorties
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+    int32_t temperature = -1;
+    printf("Le thermometre indique %d°C %u°C %f°F, y'a interet à se couvrir!\\n",
+           temperature,
+           temperature,
+           temperature);
+    </pre>
+    Qu'affiche l'exécution du code ci-dessus ?
+  answers:
+  - ko: Le thermometre indique -1°C, 1°C, -1.0°F, y'a interet à se couvrir!
+    feedback: -1 interprété en unsigned représente la valeur maximale (non signée) qu'on puisse coder sur le nombre de bits du type considéré (ici 32).
+  - ok: Le thermometre indique -1°C, 4294967295°C, 0.000000°F, y'a interet à se couvrir!
+    feedback: Le format adéquat pour un entier signé est %d. -1 interprété en unsigned affiche la valeur maximale des entiers non signés. -1 interprété en flottant affiche 0.0.
+  - ko: Le thermometre indique -1°C, -1°C, -1.0°F, y'a interet à se couvrir!
+    feedback: -1 interprété en flottant vaut 0.0.
+  - ko: Rien, le programme s'arrête sur une erreur de segmentation
+    feedback: une erreur de segmentation se produit lors d'un accès mémoire illicite.
+
+- title: Le mot le plus long
+  category: Entrees-Sorties
+  type: M
+  score: 1.0
+  description: |
+    On saisit la phrase suivante au clavier "Anticonstitutionnellement je programmerai." On veut stocker le premier mot de cette phrase (anticonstitutionnellement, 25 caractères) dans une chaine de caractères. Voici une liste de solutions envisagées...
+    <pre>
+        char chaine[26];
+
+        /* Solution n°1 */
+        fgets(chaine, 25);
+
+        /* Solution n°2 */
+        fgets(chaine, 25, stdin);
+
+        /* Solution n°3 */
+        fgets(chaine, 26, stdin);
+
+        /* Solution n°4 */
+        scanf("%s", chaine);
+    </pre>
+    Que pensez vous des solutions proposées ?
+  answers:
+  - ko: La solution n°1 fonctionne
+    feedback: ce code ne compile pas, puisque fgets prend un 3e paramètre (le flux à partir duquel récupérer les données).
+  - ko: La solution n°2 fonctionne
+    feedback: fgets capture au maximum le nombre de caractères passé en paramètre -1. Ici, on capture donc 24 lettres et non 25.
+  - ok: La solution n°3 fonctionne
+    feedback: fgets capture au maximum le nombre de caractères passé en paramètre -1. Ici, on capture donc 25 lettres et on rajoute '\0'.
+  - ok: La solution n°4 fonctionne
+    feedback: oui, mais scanf c'est bof, puisqu'en fonction de ce que saisit l'utilisateur, cet appel peut corrompre la mémoire de votre programme. Par exemple, si à la place on entre un mot de 30 caractères ici, les 6 caractères excédentaires vont être écrits _après_ le tableau chaine, et donc écraser des données en mémoire.
+
+- title: Par ici la sortie
+  category: Entrees-Sorties
+  type: M
+  score: 1.0
+  description: |
+    Le code suivant présente quatre solutions pour afficher la chaine de caractères "Je maitrise les IO".
+    <pre>
+        /* Solution 1 */
+        printf("Je maitrise les IO.\\n");
+
+        /* Solution 2 */
+        fprintf(stderr, "Je maitrise les IO.\\n");
+
+        /* Solution 3 */
+        fprintf(stdout, "Je maitrise les IO.\\n");
+
+        /* Solution 4 */
+        fprintf(stdin, "Je maitrise les IO.\\n");
+    </pre>
+    Parmi ces solutions...
+  answers:
+  - ok: La solution n°1 affiche sur la sortie standard, généralement l'écran
+    feedback: vrai, c'est le comportement de printf par défaut.
+  - ko: La solution n°2 n'affiche pas "Je maitrise les IO." mais un message d'erreur en lien avec l'utilisation erronnée de fprint
+    feedback: faux, on affiche bien ce qu'il faut, mais sur la sortie d'erreur cette fois.
+  - ok: La solution n°3 affiche la même chose que la solution n°1
+    feedback: vrai, les deux propositions sont équivalentes.
+  - ko: La solution n°4 provoque une erreur de type segmentation fault
+    feedback: faux, pas d'erreur de segmentation ici mais comme stdin est en lecture seule, fprintf n'affiche rien et retourne -1.
+
+- title: FILE et faille
+  category: Entrees-Sorties
+  type: M
+  score: 1.0
+  description: |
+    On cherche à lire le premier caractère contenu dans le fichier texte toto.txt. Deux solutions sont proposées ci-dessous :
+    <pre>
+        /* Solution n°1 */
+        FILE *f = fopen("toto.txt", "w");
+        printf("%c", fgetc(f));
+
+        /* Solution n°2 */
+        FILE *f = fopen("toto.txt", "r");
+        printf("%c", fgetc(f));
+    </pre>
+    Que pensez-vous de ces solutions ?
+  answers:
+  - ko: La solution n°1 fonctionne
+    feedback: faux, on ouvre le fichier en écriture seulement 'w', ce qui a pour effet d'écraser toto.txt s'il existait déjà.
+  - ok: La solution n°1 ne fonctionne pas car elle détruit le contenu du fichier toto.txt
+    feedback: vrai, on ouvre le fichier en écriture seulement 'w', ce qui a pour effet d'écraser toto.txt s'il existait déjà.
+  - ok: La solution n°2 fonctionne
+    feedback: vrai, on ouvre le fichier en lecture seulement 'r', on lit le premier caractère à l'aide de fgetc.
+  - ko: La solution n°2 ne fonctionne pas car elle détruit le contenu du fichier toto.txt
+    feedback: faux, on ouvre le fichier en lecture seulement 'r', ce qui n'écrase bien évidemment pas le fichier!
+  - ok: Il manque un fclose dans les 2 solutions, ce qui constitue une fuite mémoire
+    feedback: vrai, comme malloc/free, pensez toujours à ajouter un fclose dès que vous écrivez fopen dans votre programme.
+  - ko: Les fichiers seront automatiquement fermés quand plus personne ne les utilisera (garbage collector)
+    feedback: faux, on n'est plus en python! Il n'y a pas de garbage collector en C.
+
+- title: Rien à déclarer
+  category: Compilation
+  type: M
+  score: 1.0
+  description: |
+    Soit le code source prog.c ci-dessous :
+    <pre>
+        #include <stdint.h>
+
+        int main(void)
+        {
+            int32_t a, b, c;
+            a = 82;
+            b = 6;
+            c = pgcd(a,b);
+            return 0;
+        }
+    </pre>
+    La compilation de ce code indique le warning suivant :
+    <pre>
+        gcc prog.c -o prog -Wall -Wextra
+            prog.c 11-9 warning, implicit declaration of function 'pgcd' is invalid in C99
+    </pre>
+    Que signifie ce warning ?
+  answers:
+  - ko: Le compilateur n'aurait pas eu ce problème en C89
+    feedback: faux, ben si, tout pareil.
+  - ok: Le compilateur ne connait pas le prototype de la fonction pgcd
+    feedback: vrai, le prototype (ou déclaration) de la fonction doit être fournie avant de pouvoir l'utiliser, afin que le compilateur soit capable de vérifier que l'appel de la fonction est bien formé (valeur de retour du bon type, bon nombre de paramètres, bons types des paramètres). Si on ne fournit pas ce prototype, le compilateur nous indique qu'on utilise une fonction dont la déclaration est "implicite".
+  - ko: La fonction pgcd est définie plusieurs fois dans le fichier
+    feedback: faux, dans ce cas il dirait un truc du genre "multiple declaration of function pgcd".
+  - ko: L'appel à la fonction pgcd est incorrect
+    feedback: faux, le compilateur ne peut pas statuer là-dessus, puisqu'il ne connait pas le prototype de la fonction pgcd.
+
+- title: Ma référence à moi
+  category: Compilation
+  type: M
+  score: 1.0
+  description: |
+    Soit le code source prog.c ci-dessous
+    <pre>
+        #include <stdint.h>
+
+        /* Prototype pgcd */
+        int32_t pgcd(int32_t, int32_t);
+
+        int main(void)
+        {
+            int32_t a, b, c;
+            a = 82;
+            b = 6;
+            c = pgcd(a,b);
+            return 0;
+        }
+    </pre>
+    La compilation de ce code indique l'erreur suivante
+    <pre>
+        gcc prog.c -o prog -Wall -Wextra
+            prog.c (.text+0x24) undefined reference to « pgcd »
+            gcc error, linker command failed with exit code 1
+    </pre>
+    Que signifie cette erreur ?
+  answers:
+  - ko: Le prototype de la fonction pgcd est incorrect
+    feedback: faux, si c'était le cas, le compilateur indiquerait où se trouve l'erreur dans le code, au niveau de la ligne où on donne le prototype de pgcd, et le message d'erreur serait différent.
+  - ko: L'appel à la fonction pgcd est incorrect
+    feedback: faux, si c'était le cas, le compilateur indiquerait où se trouve l'erreur dans le code, au niveau de la ligne où on appelle pgcd, et le message d'erreur serait différent.
+  - ok: Le compilateur ne trouve pas l'emplacement de l'implémentation de la fonction pgcd
+    feedback: vrai, on se trouve ici dans la phase d'édition des liens, où les fichiers binaires sont fusionnés pour créer un fichier exécutable. Lors de cette phase, le compilateur effectue les associations entre l'appel d'une fonction et l'adresse mémoire où se trouve le code de cette fonction. Si cette association n'est pas possible (on ne trouve pas l'implémentation de pgcd).
+  - ko: Pas trop grave, le programme exécutable prog est tout de même généré
+    feedback: faux, le compilateur ne sait pas à quelle adresse on saute quand on appelle pgcd.
+
+- title: Compilaptor épisode 1
+  category: Compilation
+  score: 1.0
+  type: M
+  description: |
+    On compile un programme avec les options suivantes
+    <pre>
+        gcc prog.c -o prog -Wall -Wextra -lm
+    </pre>
+    Cochez les affirmations correctes
+  answers:
+  - ok: -Wextra permet d'activer l'affichage de messages d'avertissement supplémentaires lors de la compilation
+    feedback: vrai, W signifie Warnings (avertissements), et extra, ben euh... plusplus quoi!
+  - ko: -Wall permet de faire appel à l'ensemble des librairies du langage C
+    feedback: faux, W signifie Warnings (avertissements), et all indique qu'on souhaite les afficher tous.
+  - ko: -o permet de générer du code objet
+    feedback: faux, il permet de spécifier le nom du fichier de sortie (o pour output).
+  - ok: -o permet de choisir le nom du fichier de sortie
+    feedback: vrai, o signifie output ici.
+  - ok: -lm permet de lier le programme à la bibliothèque libm
+    feedback: vrai, -ltruc signifie qu'on souhaite lier l'exécutable à la bibliothèque libtruc.so.
+
+- title: Compilaptor contre attaque
+  category: Compilation
+  type: M
+  score: 1.0
+  description: |
+    On compile un programme avec les options suivantes
+    <pre>
+        gcc prog.c -o prog -Wall -Wextra -g
+    </pre>
+    Cochez les affirmations correctes
+  answers:
+  - ok: -Wall permet d'activer l'affichage de messages d'avertissement supplémentaires lors de la compilation
+    feedback: vrai, W signifie Warnings (avertissements), et all indique qu'on souhaite les afficher tous.
+  - ok: -Wextra permet d'activer l'affichage de messages d'avertissement supplémentaires lors de la compilation
+    feedback: vrai, W signifie Warnings (avertissements), et extra, ben euh... plusplus quoi!
+  - ko: -g permet de générer du code générique pour une meilleur portabilité
+    feedback: faux, écrire un code générique, c'est le boulot du programmeur.
+  - ok: -g permet de générer de l'information utile au débogage
+    feedback: vrai, en particulier, des infos permettant de faire le lien entre le code source (fichier, numéro de ligne dans le fichier) et le binaire compilé.
+
+- title: Comme C étrange
+  category: Operateurs
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        uint8_t un = 1;
+        if (un = 42) {
+            printf("bizarre!\\n");
+        }
+        if (un = 1) {
+            printf("vous avez dit bizarre?\\n");
+        }
+    </pre>
+    Le programme précédent affiche...
+  styleAnswer: pre
+  answers:
+  - ok: |
+        bizarre!
+        vous avez dit bizarre?
+    feedback: vrai, attention à la confusion entre l'opérateur d'affectation (=) et celui de comparaison (==).
+  - ko: bizarre!
+    feedback: faux, le code est équivalent à if(42) ... if(1) qui sont deux conditions vraies tout le temps. En effet, on utilise ici l'opérateur d'affectation (=) qui est différent de l'opérateur de comparaison (==).
+  - ko: vous avez dit bizarre?
+    feedback: faux, le code est équivalent à if(42) ... if(1) qui sont deux conditions vraies tout le temps. En effet, on utilise ici l'opérateur d'affectation (=) qui est différent de l'opérateur de comparaison (==).
+  - ko: le programme n'affiche rien.
+    feedback: faux, le code est équivalent à if(42) ... if(1) qui sont deux conditions vraies tout le temps. En effet, on utilise ici l'opérateur d'affectation (=) qui est différent de l'opérateur de comparaison (==).
+
+- title: C plus plus
+  category: Operateurs
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        uint8_t comp = 0;
+        uint8_t teur = 0;
+        teur = ++comp;
+        teur = comp++;
+        printf("comp = %d teur = %d\\n", comp, teur);
+    </pre>
+
+    Qu'affiche ce programme après exécution...
+  answers:
+  - ko: comp = 2 teur = 2
+    feedback: faux, ++x retourne la valeur de x après incrémentation, x++ retourne la valeur de x avant incrémentation.
+  - ko: comp = 1 teur = 1
+    feedback: faux, ++x retourne la valeur de x après incrémentation, x++ retourne la valeur de x avant incrémentation.
+  - ok: comp = 2 teur = 1
+    feedback: vrai, ++x retourne la valeur de x après incrémentation, x++ retourne la valeur de x avant incrémentation.
+  - ko: comp = 1 teur = 2
+    feedback: faux, ++x retourne la valeur de x après incrémentation, x++ retourne la valeur de x avant incrémentation.
+
+- title: C, légal de l'homme
+  category: Operateurs
+  type: M
+  score: 1.0
+  description: Cochez les affirmations correctes ci-dessous...
+  answers:
+  - ok: "*= est un opérateur d'affectation combiné avec une multiplication"
+    feedback: vrai!
+  - ko: "&& est un opérateur OU logique"
+    feedback: faux, c'est un ET logique.
+  - ok: "!= est un opérateur de différence"
+    feedback: vrai!
+  - ko: <- est opérateur de pointage sur un membre d'une structure
+    feedback: faux, <- n'existe pas en C en tant qu'opérateur. Par contre, -> permet d'accéder à un champ d'une structure à partir d'un pointeur. s->truc représente le champ truc de la structure pointée par s, et est équivalent à (*s).truc.
+
+- title: Un struct qui me trotte dans la tête
+  category: Operateurs
+  type: M
+  score: 1.0
+  description: |
+    Soit le type struct turlu et le morceau de code suivant...
+    <pre>
+        struct turlu {
+             uint32_t ti;
+             uint16_t ta;
+        };
+        ...
+        struct turlu tutu = { 4, 6 };
+        struct turlu *p;
+        p = &tutu;
+        p->ta = 12;
+        tutu.ti = 8;
+    </pre>
+    Une fois ce morceau de code exécuté, cochez les affirmations correctes...
+  answers:
+  - ko: tutu.ti vaut 4
+    feedback: faux! tutu.ti a été modifié et vaut 8 après exécution de ce code.
+  - ok: tutu.ti vaut 8
+    feedback: vrai! tutu.ti fait référence au champ ti de la structure représentée par tutu.
+  - ko: tutu.ta vaut 6
+    feedback: faux! le champ ta de la structure tutu a été modifié via le pointeur p (p->ta = 12).
+  - ok: tutu.ta vaut 12
+    feedback: vrai! le champ ta de la structure tutu a été modifié via le pointeur p (p->ta = 12).
+  - ko: p->ti vaut 4
+    feedback: faux! p->ti est équivalent à tutu.ti et vaut 8.
+  - ok: p->ti vaut 8
+    feedback: vrai! p->ti est équivalent à tutu.ti et vaut 8.
+  - ko: p->ta vaut 6
+    feedback: faux! p->ta vaut 12 après l'affectation p->ta = 12.
+  - ok: p->ta vaut 12
+    feedback: vrai! p->ta vaut 12 après l'affectation p->ta = 12.
+
+- title: Argument vade retro satanas
+  category: Passage de parametres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        static void f(char c, uint32_t *y)
+        {
+             c = 'z';
+             *y = 666;
+        }
+
+        int main(void)
+        {
+             char c = 'a';
+             uint32_t y = 0;
+             f(c, &y);
+             return EXIT_SUCCESS;
+        }
+    </pre>
+    Dans le programme précédent, après exécution de la fonction f...
+  answers:
+  - ok: c vaut 'a'
+    feedback: vrai! Les arguments d'une fonction C sont passés par valeur, on travaille donc sur une copie de c dans le corps de la fonction f, qui est détruite lorsqu'on sort de la fonction.
+  - ko: c vaut 'z'
+    feedback: faux! Les arguments d'une fonction C sont passés par valeur, on travaille donc sur une copie de c dans le corps de la fonction f, qui est détruite lorsqu'on sort de la fonction.
+  - ko: La valeur de c est indéterminée
+    feedback: vrai! Les arguments d'une fonction C sont passés par valeur, on travaille donc sur une copie de c dans le corps de la fonction f, qui est détruite lorsqu'on sort de la fonction. La copie de c sur laquelle on travaille et la variable c définie dans le main occupent deux espaces mémoire différents, c vaut bien 'a' en sortie.
+  - ko: y vaut 0
+    feedback: faux! On passe l'adresse de la variable y en paramètre de la fonction f. Du coup, quand on fait référence à *y dans le corps de la fonction f, on accède bien à l'entier appelé y dans le main. On modifie donc sa valeur, et y vaut 666 en sortie.
+  - ok: y vaut 666
+    feedback: vrai! On passe l'adresse de la variable y en paramètre de la fonction f. Du coup, quand on fait référence à *y dans le corps de la fonction f, on accède bien à l'entier appelé y dans le main. On modifie donc sa valeur, et y vaut 666 en sortie.
+  - ko: La valeur de y est indéterminée
+    feedback: faux! On passe l'adresse de la variable y en paramètre de la fonction f. Du coup, quand on fait référence à *y dans le corps de la fonction f, on accède bien à l'entier appelé y dans le main. On modifie donc sa valeur, et y vaut 666 en sortie.
+
+- title: Char suffit
+  category: Passage de parametres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        static void f(char *g, char me)
+        {
+             g[0] = 'p';
+             me = 'f';
+        }
+
+        int main(void)
+        {
+             char c[] = "tam";
+             f(c, c[2]);
+             return EXIT_SUCCESS;
+        }
+    </pre>
+    Après exécution du programme précédent...
+  answers:
+  - ko: c vaut "paf"
+    feedback: faux! Le paramètre g de la fonction f contient l'addresse de c. Les modifications sur *g de f impactent donc c de main (g[0] est équivalent à *(g + 0)). Le paramètre char me n'est qu'une copie de c[2] qui n'altère en rien la valeur de c[2] dans main.
+  - ko: c vaut "taf"
+    feedback: faux! Le paramètre g de la fonction f contient l'addresse de c. Les modifications sur *g de f impactent donc c de main (g[0] est équivalent à *(g + 0)). Le paramètre char me n'est qu'une copie de c[2] qui n'altère en rien la valeur de c[2] dans main.
+  - ok: c vaut "pam"
+    feedback: vrai! Le paramètre g de la fonction f contient l'addresse de c. Les modifications sur *g de f impactent donc c de main (g[0] est équivalent à *(g + 0)). Le paramètre char me n'est qu'une copie de c[2] qui n'altère en rien la valeur de c[2] dans main.
+  - ko: c vaut "tam"
+    feedback: faux! Le paramètre g de la fonction f contient l'addresse de c. Les modifications sur *g de f impactent donc c de main (g[0] est équivalent à *(g + 0)). Le paramètre char me n'est qu'une copie de c[2] qui n'altère en rien la valeur de c[2] dans main.
+
+- title: Echange version Française des jeux
+  category: Passage de parametres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        static void echange(uint32_t x, uint32_t *y)
+        {
+            uint32_t pivot;
+            pivot = x;
+            x = *y;
+            *y = pivot;
+        }
+
+        int main(void)
+        {
+             uint32_t x = 13;
+             uint32_t y = 7;
+             echange(x, &y);
+             return EXIT_SUCCESS;
+        }
+    </pre>
+
+    Après exécution du programme précédent...
+  answers:
+  - ko: x vaut 13 et y vaut 7
+    feedback: faux! x de echange ne contient qu'une copie de la valeur de x de main et ne peut donc modifier ce dernier. y de echange pointe sur le même emplacement mémoire que &y de main, la valeur de y de main peut donc être modifiée par echange.
+  - ko: x vaut 7 et y vaut 13
+    feedback: faux! x de echange ne contient qu'une copie de la valeur de x de main et ne peut donc modifier ce dernier. y de echange pointe sur le même emplacement mémoire que &y de main, la valeur de y de main peut donc être modifiée par echange.
+  - ok: x vaut 13 et y vaut 13
+    feedback: vrai! x de echange ne contient qu'une copie de la valeur de x de main et ne peut donc modifier ce dernier. y de echange pointe sur le même emplacement mémoire que &y de main, la valeur de y de main peut donc être modifiée par echange.
+  - ko: x vaut 7 et y vaut 7
+    feedback: faux! x de echange ne contient qu'une copie de la valeur de x de main et ne peut donc modifier ce dernier. y de echange pointe sur le même emplacement mémoire que &y de main, la valeur de y de main peut donc être modifiée par echange.
+
+- title: La réponse est 42
+  category: Pointeurs
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int32_t x = 40;
+        int32_t *p;
+        p = &x;
+        (*p)++;
+    </pre>
+    Combien vaut x après l'exécution du code précédent?
+  answers:
+  - ko: '40'
+    feedback: faux! p et &x pointent sur le même emplacement mémoire. Modifier *p modifie x.
+  - ok: '41'
+    feedback: vrai! p et &x pointent sur le même emplacement mémoire. Modifier *p modifie x.
+  - ko: '42'
+    feedback: faux! p et &x pointent sur le même emplacement mémoire. Modifier *p modifie x.
+  - ko: On ne peut pas savoir
+    feedback: faux! p et &x pointent sur le même emplacement mémoire. Modifier *p modifie x.
+  - ko: Le programme quitte brutalement en indiquant une segmentation fault due à l'utilisation de pointeurs
+    feedback: faux! Les accès mémoire sont tous licites dans ce programme.
+
+- title: P'tit gros
+  category: Pointeurs
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        uint16_t x = 65535; /* en binaire, 0b1111111111111111 */
+        uint16_t *gros = &x;
+        uint8_t *petit = &x;
+        printf("%u %u\\n", *petit, *gros);
+    </pre>
+    Dans le code ci-dessus...
+  answers:
+  - ok: petit et gros ont des valeurs identiques
+    feedback: vrai! gros et petit représentent une seule et même adresse mémoire. C'est la taille de l'espace mémoire pointé qui est différente, 2 octets pour gros, 1 octet pour petit.
+  - ko: petit vaut 255, gros vaut 65535
+    feedback: faux! gros et petit représentent une seule et même adresse mémoire. C'est la taille de l'espace mémoire pointé qui est différente, 2 octets pour gros, 1 octet pour petit.
+  - ok: '*petit vaut 255, *gros vaut 65535'
+    feedback: vrai! *gros et *petit désignent les valeurs entières contenues dans les espaces mémoire pointés par gros et petit, dont les tailles sont différentes (1 octet pour petit, 2 octets pour gros).
+  - ko: Le programme quitte brutalement en indiquant une segmentation fault due à l'utilisation de pointeurs
+    feedback: faux! Ce programme est correct du point de vue de l'utilisation de la mémoire.
+
+- title: Ursule et les méduses
+  category: Pointeurs
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        struct ur
+        {
+            uint16_t *in;
+            char sule;
+        };
+        struct ur tiquaire =  { NULL, 's' };
+        struct ur *p;
+        p = &tiquaire;
+    </pre>
+    Grâce à gdb/ddd, on sait que la variable tiquaire est stockée à l'adresse 0x10002010. On peut donc dire que ...
+  answers:
+  - ko: p est stockée à l'adresse 0x10002010
+    feedback: faux! p est un pointeur sur tiquaire. p a pour valeur l'adresse de tiquaire (identique à l'adresse du premier élément de la structure tiquaire.in). p est lui même stocké à une autre adresse mémoire.
+  - ok: p a pour valeur 0x10002010
+    feedback: vrai! p est un pointeur sur tiquaire. p a pour valeur l'adresse de tiquaire (identique à l'adresse du premier élément de la structure tiquaire.in). p est lui même stocké à une autre adresse mémoire.
+  - ok: '&(tiquaire.in) vaut 0x10002010'
+    feedback: vrai! p est un pointeur sur tiquaire. p a pour valeur l'adresse de tiquaire (identique à l'adresse du premier élément de la structure tiquaire.in). p est lui même stocké à une autre adresse mémoire.
+  - ok: p->sule est à l'adresse 0x10002010 + sizeof(uint16_t *)
+    feedback: vrai! p est un pointeur sur tiquaire. p a pour valeur l'adresse de tiquaire (identique à l'adresse du premier élément de la structure tiquaire.in). p est lui même stocké à une autre adresse mémoire.
+
+- title: Tu pointes ou tu tires?
+  category: Pointeurs
+  type: M
+  score: 1.0
+  description: |
+    Soit le code suivant...
+    <pre>
+        uint8_t cochonnet = 255;
+        uint8_t *boule;
+    </pre>
+    On souhaite faire en sorte que boule pointe vers l'emplacement mémoire de la variable cochonnet. Cochez parmi les solutions proposées celle qui vous semble le mieux répondre à la question.
+  styleAnswer: pre
+  answers:
+  - ko: |
+      boule = malloc(sizeof(uint8_t));
+      *boule = cochonnet;
+    feedback: faux! malloc alloue un nouvel emplacement mémoire pour stocker un uint8_t. Cet emplacement est forcément différent de celui de la variable cochonnet.
+
+  - ko: |
+      boule = malloc(sizeof(uint8_t));
+      boule = &cochonnet;
+    feedback: faux! malloc alloue un nouvel emplacement mémoire pour stocker un uint8_t. Cet emplacement est forcément différent de celui de la variable cochonnet.
+
+  - ko: '*boule = cochonnet;'
+    feedback: faux! En faisant ça, on écrit la valeur de la variable cochonnet dans l'espace mémoire pointé par boule.
+
+  - ok: boule = &cochonnet;
+    feedback: vrai! Ici, boule prend comme valeur de l'adresse de l'emplacement mémoire utilisé par la variable cochonnet.
+
+- title: Chat malloc
+  category: Allocation dynamique
+  type: M
+  score: 1.0
+  description: |
+    On désire allouer un emplacement mémoire pour stocker 20 entiers de type int32_t :
+    <pre>
+        int32_t *n;
+
+        /* Solution n°1 */
+        n = malloc(20 * sizeof(int32_t));
+
+        /* Solution n°2 */
+        n = malloc(20 * sizeof(*n));
+
+        /* Solution n°3 */
+        n = malloc(sizeof(20 * int32_t));
+
+        /* Solution n°4 */
+        n = calloc(20, sizeof(int32_t));
+    </pre>
+    Prises indépendemment, que peut-on dire de ces 4 solutions ?
+  answers:
+  - ok: La solution n°1 est correcte
+    feedback: vrai! malloc prend la taille de l'espace mémoire à allouer, ici 20 fois la taille en octets d'un entier int32_t.
+  - ok: La solution n°2 est correcte
+    feedback: vrai! malloc prend la taille de l'espace mémoire à allouer, ici 20 fois la taille en octets de l'espace mémoire représenté par *n. n étant un pointeur sur un int32_t, *n représente un int32_t.
+  - ko: La solution n°3 est correcte
+    feedback: faux! sizeof(20 * int32_t) n'a pas de sens et génère une erreur à la compilation.
+  - ok: La solution n°4 est correcte
+    feedback: vrai! calloc, comme malloc, permet d'allouer dynamiquement de la mémoire. La différence principale réside dans le fait que calloc initialise à 0 l'espace mémoire alloué. Le prototype de cette fonction est aussi différent de celle de malloc (d'abord le nombre d'éléments à allouer, puis la taille en octets d'un élément).
+
+- title: Malloc erveau
+  category: Allocation dynamique
+  type: M
+  score: 1.0
+  description: |
+    Soit le code suivant...
+    <pre>
+        struct point
+        {
+            uint32_t x;
+            uint32_t y;
+        };
+
+        struct cellule
+        {
+            struct point p;
+            struct cellule *next;
+            struct cellule *prec;
+        };
+
+        struct cellule *c;
+    </pre>
+    Pour allouer la cellule pointée par c, on peut écrire...
+  answers:
+  - ko: '*c = malloc(sizeof(struct cellule));'
+    feedback: faux! Les types des données à gauche et à droite de l'opérateur d'affectation sont différents. *c est de type struct cellule, alors que malloc retourne une adresse mémoire. Le compilateur s'arrête donc en erreur.
+  - ko: c = malloc(sizeof(struct cellule *));
+    feedback: faux! On alloue ici la place nécessaire pour stocker un pointeur sur un struct cellule, et pas un struct cellule en entier.
+  - ok: c = malloc(sizeof(struct cellule));
+    feedback: vrai! On alloue ici la place nécessaire pour stocker un struct cellule, c'est-à-dire un espace mémoire de taille suffisante pour y stocker tous les champs de la structure cellule.
+  - ko: c = malloc(sizeof(struct point) + 2 * sizeof(struct cellule *));
+    feedback: On alloue ici la place nécessaire pour stocker un struct cellule, c'est-à-dire un espace mémoire de taille suffisante pour y stocker tous les champs de la structure cellule. Mais dans la vraie vie, les compilateurs s'autorisent à insérer du vide (padding) entre les champs d'une structure, pour respecter des contraintes d'alignement mémoire. Aussi, on peut simplement affirmer que la taille d'une structure est _au moins_ la somme des tailles de ses champs, mais elle peut aussi occuper plus de mémoire si le compilateur décide de faire du padding.
+
+- title: Mémoire martyrisée ! Mais mémoire libérée !
+  category: Allocation dynamique
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+    struct point
+    {
+         uint32_t x;
+         uint32_t y;
+    };
+
+    struct cellule
+    {
+         struct point p;
+         struct cellule *next;
+         struct cellule *prec;
+    };
+
+    struct cellule *c = allouer_cellule();
+    </pre>
+    On suppose que la fonction allouer_cellule() ne fait qu'allouer dynamiquement la mémoire nécessaire pour stocker un struct cellule.
+    Pour libérer cette cellule c, on pourra exécuter...
+
+  styleAnswer: pre
+  answers:
+  - ok: free(c);
+    feedback: vrai! free prend en paramètre une adresse mémoire retournée par malloc.
+  - ko: free(*c);
+    feedback: faux! free prend en paramètre une adresse mémoire retournée par malloc, pas la donnée pointée par cette adresse.
+  - ko: |
+          free(c->next);
+          free(c->prec);
+          free(c);
+    feedback: faux! Rien n'indique que c->next et c->prec aient été alloués dynamiquement.
+  - ko: |
+          free(c->p);
+          free(c->next);
+          free(c->prec);
+          free(*c);
+    feedback: faux! Rien n'indique que c->next et c->prec aient été alloués dynamiquement. c->p et *c ne représentent pas une adresse.
+
+- title: La frite de Chartres
+  category: Allocation dynamique
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char *teuse = calloc(1000, sizeof(char));
+        initialiser(teuse);
+    </pre>
+    Indiquez les réponses qui vous paraîssent correctes
+  answers:
+  - ok: La fonction initialiser va travailler sur une chaîne vide
+    feedback: vrai! calloc alloue et initialise un nouvelle espace mémoire à la valeur 0. La valeur 0 est traduite en ascii en '\0', qui correspond au caractère de fin de chaine. On peut considérer ainsi que teuse est une chaine de caractères qui débute par le caractère de fin de chaine, ce qui est la définition d'une chaine vide en C.
+  - ok: teuse pointe sur un emplacement mémoire pouvant contenir 1000 octets
+    feedback: vrai! calloc, comme malloc, alloue un espace mémoire dont la taille en octets est fournie en paramètre (ici, 1000 * sizeof(char)).
+  - ko: Avant l'appel de la fonction initialiser, on ne peut pas savoir ce que contiennent les 1000 cases de ce tableau de caractères
+    feedback: faux! Ben si, calloc initialise les octets de l'espace mémoire alloué à la valeur 0.
+  - ko: La fonction initialiser ne pourra pas modifier les valeurs du tableau teuse
+    feedback: faux! Sisi on peut, puisqu'on passe l'adresse du premier élément du tableau.
+
+- title: oh oh oh
+  category: Programmation modulaire
+  type: M
+  score: 1.0
+  description: Un projet regroupe trois fichiers bib.c, bib.h et main.c. Quelle(s) solution(s)
+    permet(tent) de le compiler correctement ?
+  syntaxAnswer: pre
+  answers:
+  - ok: |
+        gcc -o bib.o -c bib.c -Wall -Wextra
+        gcc -o main.o -c main.c -Wall -Wextra
+        gcc -o mon_executable bib.o main.o
+    feedback: vrai! La meilleure solution est l'option -c permet de générer pour chaque fichier source un fichier objet .o. On assemble au final les fichiers objets .o pour créer le programme exécutable.
+  - ko: |
+        gcc -o mon_executable bib.o main.o
+        gcc -o bib.o -c bib.c -Wall -Wextra
+        gcc -o main.o -c main.c -Wall -Wextra
+    feedback: faux! On commence ici par lier deux .o qui n'ont pas encore été générés.
+  - ko: |
+        gcc bib.c bib.h -Wall -Wextra -o bib.o
+        gcc main.c -Wall -Wextra -o main.o
+        gcc -o mon_executable bib.o main.o
+    feedback: faux! La première ligne génère un exécutable nommé bib.o (puisqu'on n'a pas spécifié l'option -c).
+  - ok: gcc -o mon_executable bib.c main.c -Wall -Wextra
+    feedback: vrai! La meilleure solution est l'option -c permet de générer pour chaque fichier source un fichier objet .o. On assemble au final les fichiers objets .o pour créer le programme exécutable.
+
+- title: Le static c'est fantastic !
+  category: Programmation modulaire
+  type: M
+  score: 1.0
+  description: Le mot-clé static appliqué à une fonction...
+  answers:
+  - ok: ... limite la visibilité de la fonction au fichier .c dans lequel elle est
+      implémentée
+    feedback: vrai! static permet effectivement de limiter la portée d'une fonction au seul fichier .c où elle est définie
+  - ko: ... empêche la fonction d'effectuer des allocations dynamiques
+    feedback: faux! static permet effectivement de limiter la portée d'une fonction au seul fichier .c où elle est définie
+  - ko: ... rend la fonction globale (visible depuis l'extérieur du fichier .c)
+    feedback: faux! static permet effectivement de limiter la portée d'une fonction au seul fichier .c où elle est définie
+  - ko: ... indique que la fonction retourne une valeur statique
+    feedback: faux! static permet effectivement de limiter la portée d'une fonction au seul fichier .c où elle est définie
+
+- title: Les fonctions partagées sont les meilleures
+  category: Programmation modulaire
+  type: M
+  score: 1.0
+  description: |
+    Soit le fichier fonctions.c
+    <pre>
+    /* fonctions.c */
+    uint32_t plusgrand(uint32_t a, uint32_t b)
+    {
+        return a > b ? a : b;
+    }
+    </pre>
+    Pour rendre la fonction plusgrand utilisable de l'extérieur du fichier fonctions.c
+    où elle est implémentée, quelles sont les affirmations correctes ci-dessous ?
+  answers:
+  - ok: |
+        Dans un fichier fonctions.h, on écrit son prototype
+            extern uint32_t plusgrand(uint32_t, uint32_t);
+        et on utilise une directive
+            #include <fonctions.h>
+        dans le fichier .c appelant
+    feedback: vrai! La meilleure méthode est l'écriture du prototype dans un fichier entête .h qui sera inclus par la directive '#include' par les fichiers .c appelants. Même si l'écriture du prototype en début de fichier .c appelant fonctionne aussi.
+  - ko: |
+        Dans un fichier fonctions.h, on écrit son prototype
+            static uint32_t plusgrand(uint32_t, uint32_t);
+        et on utilise une directive
+            #include <fonctions.h>
+        dans le fichier .c appelant
+    feedback: faux! Allez voir la documentation des mots clés extern et static ainsi que la notion de prototype de fonction.
+  - ko: |
+        Dans un fichier fonctions.h, on copie le code complet de la fonction plusgrand,
+        et on utilise une directive
+            #include <fonctions.h>
+        dans le fichier .c appelant
+    feedback: faux! Allez voir la documentation des mots clés extern et static ainsi que la notion de prototype de fonction.
+  - ok: |
+        Au début du fichier .c appelant, on écrit son prototype
+            extern uint32_t plusgrand(uint32_t, uint32_t);
+    feedback: vrai! La meilleure méthode est l'écriture du prototype dans un fichier entête .h qui sera inclus par la directive '#include' par les fichiers .c appelants. Même si l'écriture du prototype en début de fichier .c appelant fonctionne aussi.
+
+- title: J'ai tout en tête
+  category: Programmation modulaire
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        #ifndef _TABLEAU_H_
+        #define _TABLEAU_H_
+
+        void tri_insertion(int32_t tab[], uint32_t taille);
+
+        #endif /* _TABLEAU_H_ */
+    </pre>
+    Soit le fichier d'en-tête (.h) ci-dessus. Cochez les affirmations justes.
+  answers:
+  - ok: Les directives préprocesseurs '#ifndef', '#define' servent à se protéger de l'inclusion
+      multiple de tri_insertion
+    feedback: vrai! Ces directives préprocesseurs garantissent la protection contre l'insertion multiple des fonctions du .h
+  - ko: On aurait pu écrire '#define TABLEAU_H' à la place de '#define _TABLEAU_H_'
+    feedback: faux! Si on ne définit pas le même symbole que celui qui est testé par ifndef, on n'est pas protégé contre les inclusions multiples.
+  - ko: On aurait pu limiter l'écriture du .h à la déclaraction de void tri_insertion(...
+    feedback: faux! On ne serait alors pas protégé contre les inclusions multiples de ce fichier d'entête.
+  - ok: On aurait pu mettre le mot-clé extern devant la déclaration de la fonction tri_insertion pour plus de lisibilité.
+    feedback: vrai! Par défaut, les fonctions déclarées dans un .h sont extern, mais ça ne coûte rien de l'ajouter explicitement.
+
+- title: Cold case
+  category: Structure de controle
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char c = 'b';
+        switch(c) {
+        case 'a':
+            printf("a");
+        case 'b':
+            printf("b");
+        case 'c':
+            printf("c");
+        default:
+            printf("...");
+        }
+    </pre>
+    Le programme précédent...
+  answers:
+  - ko: '... affiche "b"'
+    feedback: faux! On entre dans le case 'b', on affiche "b", mais on ne sort pas (pas de break). Du coup on execute printf("c") et printf("...") jusqu'à sortir du switch.
+  - ko: '... affiche "b..."'
+    feedback: faux! On entre dans le case 'b', on affiche "b", mais on ne sort pas (pas de break). Du coup on execute printf("c") et printf("...") jusqu'à sortir du switch.
+  - ok: '... affiche "bc..."'
+    feedback: vrai! On entre dans le case 'b', on affiche "b", mais on ne sort pas (pas de break). Du coup on execute printf("c") et printf("...") jusqu'à sortir du switch.
+  - ko: '... ne compile pas'
+    feedback: faux! Ce programme est syntaxiquement correct.
+
+- title: Alphabête
+  category: Structure de controle
+  type: M
+  score: 1.0
+  description: |
+    On veut afficher les 26 lettres de l'alphabet. 4 solutions sont proposées...
+    <pre>
+        char c;
+
+        /* Solution 1 */
+        c = 'a';
+        while (c <= 'z') {
+            printf("%c ", c);
+            c++;
+        }
+        printf("\\n");
+
+        /* Solution 2 */
+        c = 'a';
+        while (c < 'z') {
+            c++;
+            printf("%c ", c);
+        }
+        printf("\\n");
+
+        /* Solution 3 */
+        c = 'a';
+        do {
+            printf("%c ", c);
+            c++;
+        } while (c <= 'z');
+        printf("\\n");
+
+        /* Solution 4 */
+        c = 'a';
+        do {
+            c++;
+            printf("%c ", c);
+        } while (c < 'z');
+        printf("\\n");
+
+    </pre>
+    Que pensez vous de ces solutions ?
+  answers:
+  - ok: La solution n°1 fonctionne.
+    feedback: vrai! La valeur d'un caractère en C, c'est l'index de ce caractère dans la table ascii. Comme dans cette table, les lettres minuscules sont rangées de 'a' à 'z', ça fonctionne.
+  - ko: La solution n°2 fonctionne.
+    feedback: faux! Avec un inférieur strict, on s'arrête juste avant 'z', donc on n'affiche que 25 lettres.
+  - ok: La solution n°3 fonctionne.
+    feedback: vrai! La notation do while exécute une fois le corps de la boucle avant de tester la condition d'arrêt. Ca n'a pas d'impact ici.
+  - ko: La solution n°4 fonctionne.
+    feedback: faux! Avec un inférieur strict, on s'arrête juste avant 'z', donc on n'affiche que 25 lettres.
+
+- title: Pile ou face
+  category: Structure de controle
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        /* Solution 1 */
+        if (x == 0) {
+          x = 1;
+        }
+        if (x == 1) {
+          x = 0;
+        }
+
+        /* Solution 2 */
+        x = (x == 0) ? 1 : (x == 1) ? 0 : x;
+
+        /* Solution 3 */
+        if (x == 1) {
+          x--;
+        } else if (x == 0) {
+          x++;
+        }
+    </pre>
+    On cherche à écrire un code qui affecte la valeur 0 à la variable x si x vaut 1, et effecte la valeur 1 à x si x vaut 0.
+    Vous trouverez ci-dessus trois solutions proposées. Cochez les affirmations vraies.
+  answers:
+  - ko: La solution 1 fonctionne.
+    feedback: faux! Si x vaut 0, on entre dans les deux if, et x vaudra 0 à la fin.
+  - ok: La solution 2 fonctionne.
+    feedback: vrai! On utilise ici un opérateur ternaire. Ca peut être pratique parfois, attention cependant à ce que ça ne devienne pas illisible!
+  - ok: La solution 3 fonctionne.
+    feedback: vrai! On utilise le combo if/else ici, donc impossible de passer dans les deux branches, ce sera forcément l'une ou l'autre.
+
+- title: Traces de pneu
+  category: Structure de controle
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        printf("a : %u, b : %u, c : %u ", a, b, c) ;
+        if ( a && ( !b || ( c == 3 ))) {
+            printf("ok") ;
+        }
+    </pre>
+    Indiquez les traces cohérentes avec ce code.
+  answers:
+  - ko: 'a : 10, b : 100, c : 1 ok'
+    feedback: faux! On n'affiche pas ok puisque !b, équivalent à !100, retourne false, et c == 3 aussi, puisque c vaut 1 ici.
+  - ok: 'a : 10, b : 100, c : 3 ok'
+    feedback: vrai! !b vaut false, c == 3 vaut true, donc false || true vaut true, et a est équivalent à "a != 0", qui vaut true aussi.
+  - ko: 'a : 0, b : 0, c : 3 ok'
+    feedback: faux! a est équivalent à a != 0, ici ce test est faux, et faux AND n'importe quoi vaut faux.
+  - ko: 'a : 10, b : 0, c : 1'
+    feedback: faux! ok devrait s'afficher dans ce cas, puisque !b est équivalent à b == 0.
+
+- title: Le compte est pas bon
+  category: Type de donnees
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        uint8_t x = 2;
+        uint8_t y = 3;
+        float deux_tiers = x / y;
+        printf("%f\\n", deux_tiers);
+    </pre>
+    Quel est le résulat affiché par ce programme ?
+  answers:
+  - ko: "0.666667"
+    feedback: faux!
+  - ko: "2.000000"
+    feedback: faux!
+  - ko: "3.000000"
+    feedback: faux!
+  - ok: "0.000000"
+    feedback: vrai! x et y étant 2 entiers, le calcul effectué est une division entière
+
+- title: Poupées russes
+  category: Type de donnees
+  type: M
+  score: 1.0
+  description: 'Cochez ce qui vous semble correct:'
+  answers:
+  - ko: sizeof(int8_t) < sizeof(double) < sizeof(float)
+    feedback: faux! double == "double precision float" et float == "simple precision float". On a donc sizeof(double) > sizeof(float).
+  - ok: sizeof(char) < sizeof(int16_t) < sizeof(uint32_t) < sizeof(int64_t)
+    feedback: vrai! char est toujours de taille 1 octet.
+  - ok: sizeof(int) dépend de la machine et du compilateur
+    feedback: vrai! Si on veut être certain de la taille occupée par un entier, on utilise des types de taille explicite (int32_t par exemple).
+
+- title: Les bornes ont des limites
+  category: Type de donnees
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+    for (uint8_t i = 10; i >= 0; i--) {
+        printf("%u...\\n", i);
+    }
+    </pre>
+    Ce programme affiche...
+  answers:
+  - ko: '... 11 lignes de texte'
+    feedback: faux!
+  - ko: '... 10 lignes de texte'
+    feedback: faux!
+  - ko: '... rien'
+    feedback: faux!
+  - ok: '... plus de 11 lignes de texte'
+    feedback: vrai! Attention aux variables de type unsigned que ne peuvent prendre de valeurs négatives et "bouclent" entre 0 et une valeur maximale.

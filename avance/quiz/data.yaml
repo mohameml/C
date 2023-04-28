@@ -1,0 +1,791 @@
+title: Evaluation du niveau avancé
+lvl: "avance"
+feedbackFinal: 'Retour global:'
+questions:
+
+- title: Bluff
+  category: Chaines de caracteres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char *latan = "J'ai tout pigé!";
+        size_t taille = strlen(latan);
+        char rette[taille];
+        strncpy(rette, latan, taille);
+    </pre>
+    Le code ci-dessus était censé recopier la chaine latan dans la chaine rette. Mais, ...
+
+  answers:
+  - ok: ... latan et rette n'ont pas la même taille
+    feedback: vrai! Si N est la taille de la chaine latan, strlen(latan) retourne N-1. strlen ne compte pas le caractère de fin de chaine '\0' dans la taille retournée (man strlen pour en savoir plus).
+  - ko: ... le programme plante car la chaine rette n'a pas été allouée avec malloc
+    feedback: faux! La chaine rette est allouée statiquement ici, directement sur le pile, pas besoin de malloc.
+  - ko: ... latan et rette ont la même taille
+    feedback: faux! Si N est la taille de la chaine latan, rette est de taille N-1.
+  - ko: ... la chaine latan n'est pas initialisée correctement
+    feedback: faux! C'est comme ça qu'on initialise une chaine de caractères constante en C.
+
+- title: 0 + 0
+  category: Chaines de caracteres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char jury[] = "La note de %s est %2d/20\\n";
+        char pirate[strlen(jury) + 1];
+        snprintf(pirate, strlen(jury) + 1, jury, "toto", 8);
+        pirate[20] = '1';
+        printf("%s\\n", pirate);
+    </pre>
+    Le code ci-dessus ...
+  answers:
+  - ok: ... affiche "La note de toto est 18/20."
+    feedback: Bien joué! Le chiffre 2 dans la chaine de format %2d indique que le nombre affiché à cet endroit occupera au moins deux caractères. Donc "%2d" est remplacé par " 8" dans notre cas. On écrit ensuite '1' en position 20 dans la chaine, soit pile devant le '8', ce qui a pour effet de remplacer l'espace et de former la chaine "18".
+  - ko: ... provoque une corruption mémoire
+    feedback: Même pas. C'est troublant, mais ça marche. Le truc, c'est que la chaine jury contient 25 caractères (sans compter le caractère de fin de chaine). Lorsque que les chaines de format sont remplacées par "toto" et " 8", on retire 5 caractères de la chaine (2 pour "%s" et 3 pour "%2d") et on en rajoute 6 (4 pour "toto" et 2 pour " 8"). On a donc un caractère en trop. Parmi les 26 caractères de la nouvelle chaine, seuls les 25 premiers seront recopiés dans la chaine pirate. Le caractère '\n' en dernière position de la chaine jury ne sera pas recopié, c'est pourquoi on affiche pirate avec un retour à la ligne explicite "%s\n".
+  - ko: ... ne compile pas
+    feedback: Si si.
+  - ko: ... affiche "La note de toto est 28/20."
+    feedback: Non plus, "%2d" indique le nombre affiché à cet endroit occupera au moins deux caractères. "28" aurait pu être obtenu par "2%d" ici.
+
+- title: Pas d'insulte, svp
+  category: Chaines de caracteres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char retier[] = "Mon prof est bien content d'être arrivé à la fin de l'introduction au C!\\n";
+        retier[21] = 0;
+        printf("%s\\n", retier);
+    </pre>
+    Ce programme ...
+  answers:
+  - ok: ... affiche un message avec lequel vous n'êtes pas d'accord, par principe.
+    feedback: Vrai. Après, on n'a pas dit de quel prof on parlait, en fait. Ecrire 0 dans une chaine revient à écrire le caractère '\0', caractère spécial qui marque la fin de la chaine. Pour afficher le contenu de la chaine retier sur la sortie standard, printf parcourt la chaine jusqu'à atteindre ce caractère de fin de chaine.
+  - ko: ... met en évidence un bug de la version de la libc installée sur vos machines (printf)
+    feedback: Non non. Tout va bien côté libc.
+  - ko: ... s'arrête sur une erreur de segmentation
+    feedback: Non plus, pas d'accès mémoire illicite ici.
+  - ko: ... ne compile pas
+    feedback: Si si.
+
+- title: Xfiles épisode 1
+  category: Entrees-Sorties
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int main(void) {
+            char *scully = "La verite est ailleurs !";
+            FILE *x = fopen("mulder", "wb");
+            for (int8_t i = 1; i <= 42; i++) {
+                fwrite(x, 1, strlen(scully), scully);
+            }
+            return EXIT_SUCCESS;
+        }
+    </pre>
+    Le code suivant ...
+  answers:
+  - ok: compile avec deux-trois warnings, modulo l'inclusion des headers qui vont bien.
+    feedback: vrai! L'ordre des paramètres de fwrite n'est pas le bon. Ca ne génère qu'un warning parce que les deux paramètres intervertis sont de même taille (pointeur). Mais comme les types diffèrent, le compilateur râle à juste titre.
+  - ok: s'arrête sur une erreur de segmentation
+    feedback: vrai! On a interverti le FILE * dans lequel écrire et la chaine de caractères à partir de laquelle lire, du coup fwrite essaye d'ouvrir un FILE * stocké à l'adresse scully. Bref, ça fait n'importe quoi.
+  - ko: recopie 42 fois "La vérité est ailleurs !" en ASCII dans le fichier "mulder"
+    feedback: faux! Déjà parce qu'il y a "wb" en paramètre de fopen qui veut dire "ouvre le fichier en écriture et écrit en binaire dedans". Ah et aussi parce que le programme fait n'importe quoi.
+  - ko: recopie 42 fois "La vérité est ailleurs !" en binaire dans le fichier "mulder"
+    feedback: Non plus. Toujours pas, en fait.
+
+- title: Xfiles épisode 2
+  category: Entrees-Sorties
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int main(void) {
+            char *scully = "La verite est ailleurs!";
+            FILE *x = fopen("mulder", "wb");
+            for (int8_t i = 1; i <= 42; i++) {
+                fwrite(x, 1, strlen(scully), x);
+            }
+        }
+    </pre>
+    Le code suivant ...
+  answers:
+  - ko: recopie 42 fois "La vérité est ailleurs !" en ASCII dans le fichier "mulder"
+    feedback: faux! "wb" en paramètre de fopen veut dire "ouvre le fichier en écriture et écrit en binaire dedans".
+  - ko: ne compile pas
+    feedback: Si si. Avec un petit warning qui va bien. Qui dit quoi? Qui dit en gros qu'on passe la même adresse en argument 1 et 4, ce qui ne devrait pas arriver, parce que la fonction spécifie dans son prototype que les paramètres __ptr et __stream sont 'restrict'.
+  - ko: recopie 42 fois "strlen(scully)" dans le fichier "mulder"
+    feedback: Non. Parce que... Non vraiment je vois pas pourquoi ça devrait faire ça!
+  - ok: recopie 42 fois les strlen(scully) octets de l'objet FILE pointé par x dans le fichier "mulder"
+    feedback: Voilà. On considère que le contenu à écrire dans le fichier x provient de x. Du coup on lit les strlen(scully) octets en mémoire en partant de l'adresse x, et on les écrit dans le FILE * x. Bien entendu, c'est débile et ça ne sert à rien.
+
+- title: Xfiles épisode 3
+  category: Entrees-Sorties
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int main(void)
+        {
+            char *scully = "La verite est ailleurs!";
+            FILE *x = fopen("mulder", "wb");
+            for (int8_t i = 1; i <= 42; i++) {
+                fwrite(scully, 1, strlen(scully), x);
+            }
+        }
+    </pre>
+    Le code suivant ...
+  answers:
+  - ok: recopie 42 fois "La vérité est ailleurs !" dans le fichier "mulder"
+    feedback: C'est bien ça. Rien de bien surprenant, pas vrai?
+  - ko: ne compile pas
+    feedback: Si si.
+  - ko: recopie 42 fois "strlen(scully)" dans le fichier "mulder"
+    feedback: Nan. Le 3e paramètre de fwrite indique la taille de l'objet à lire depuis l'adresse scully et à écrire dans le FILE * x.
+  - ko: recopie 42 fois les strlen(scully) octets de l'objet FILE pointé par x dans le fichier "mulder"
+    feedback: Non plus, cf juste au-dessus.
+
+- title: RGB
+  category: Entrees-Sorties
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        struct color {
+            uint8_t R;
+            uint8_t G;
+            uint8_t B;
+        };
+
+        struct color ation = { 0x42, 111, 'f' };
+        FILE *entropie = fopen("riche", "wb");
+        fwrite(&ation, sizeof(struct color), 1, entropie);
+        fclose(entropie);
+        entropie = fopen("riche", "r");
+        char u[sizeof(struct color) + 1] = {};
+        fscanf(entropie, "%3c", u);
+        printf("%s", u);
+    </pre>
+
+    Cochez les affirmations vraies parmi les propositions suivantes :
+  answers:
+  - ok: Le fichier riche contient la chaine "Bof"
+    feedback: Vrai! On écrit trois octets dans ce fichier, de valeurs respectives 0x42 (66 en décimal, soit le code ASCII du caractère 'B'), 111 (le code ASCII du caractère 'o') et enfin 'f'.
+  - ko: Le fichier riche contient la chaine "foB"
+    feedback: Faux! Voir ci-dessus.
+  - ok: Le code affiche la chaine "Bof"
+    feedback: Vrai! Le format %3c en paramètre de fscanf indique qu'on va lire depuis le fichier entropie 3 octets consécutifs.
+  - ko: Le code affiche la chaine "foB"
+    feedback: Faux! Toujours pas.
+  - ko: Ca ne compile pas à cause de la déclaration foireuse de u
+    feedback: Si si. Cette syntaxe réserve sizeof(struct color) octets en mémoire, +1 octet pour le caractère de fin de chaine. Les double accolades force leur initialisation à 0.
+  - ko: Ca plante à l'exécution lors de la deuxième ouverture du fichier riche en mode texte au lieu de binaire
+    feedback: Nan.
+
+- title: Tirégranti
+  category: Compilation
+  type: M
+  score: 1.0
+  description: L'option de compilation -I ("grand i") ...
+  answers:
+  - ok: ... spécifie un répertoire dans lequel chercher des fichiers d'en-tête
+    feedback: Vrai! Ca permet d'utiliser la syntaxe avec chevrons dans les fichiers source (#include <pouetpouet.h>).
+  - ko: ... indique au compilateur d'ajouter une bibliothèque lors de l'édition de liens
+    feedback: Faux! Ce serait -l (petite aile).
+  - ko: ... désactive tous les messages d'avertissements
+    feedback: Non plus, ça c'est -w
+  - ko: ... active le support des instructions SSE
+    feedback: Non. Pour faire ça, ben ça dépend du compilo... Mais, vous savez ce que c'est une instruction SSE au fait?
+
+- title: P'tite aile
+  category: Compilation
+  type: M
+  score: 1.0
+  description: L'option de compilation -l ("petite aile") ...
+  answers:
+  - ko: ... spécifie un répertoire dans lequel chercher des fichiers d'en-tête
+    feedback: Nan! Ca ce serait l'option -I ("moingranti")
+  - ok: ... indique au compilateur d'ajouter une bibliothèque lors de l'édition de liens
+    feedback: Vrai! On colle le nom de la bibliothèque derrière, tronqué de son préfixe (lib). Par exemple, si on souhaite lier son exécutable à la bibliothèque libm.so, on ajoute -lm.
+  - ko: ... désactive tous les messages d'avertissements
+    feedback: Non, ça c'est -w
+  - ko: ... active le support des instructions SSE
+    feedback: Non. Pour faire ça, ben ça dépend du compilo... Mais, vous savez ce que c'est une instruction SSE au fait?
+
+- title: L est facile celle-là
+  category: Compilation
+  type: M
+  score: 1.0
+  description: L'option de compilation -L  ...
+  answers:
+  - ok: ... spécifie un répertoire dans lequel chercher des bibliothèques
+    feedback: Voilà! C'est comme le -I ("moingranti") mais pas pour les headers, pour les bibliothèques.
+  - ko: ... indique au compilateur d'ajouter une bibliothèque lors de l'édition de liens
+    feedback: Non, ça c'est p'tite aile.
+  - ko: ... désactive tous les messages d'avertissements
+    feedback: Non plus, ça c'est -w.
+  - ko: ... spécifie un répertoire dans lequel chercher des fichiers d'en-tête
+    feedback: Non non, c'est moingranti.
+
+- title: Corbillard
+  category: Compilation
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+    #if 0
+        code_mort();
+    #endif
+    </pre>
+    La fonction code_mort() ci-dessus ...
+  answers:
+  - ok: ... est retirée du code source par le préprocesseur avant l'analyse syntaxique
+    feedback: Oui! La condition if 0 étant toujours fasse, le code entre if et endif est retiré par le préprocesseur (ou plus précisément, il n'est pas inclus dans le fichier de sortie après passage du préprocesseur).
+  - ko: ... fait partie de l'exécutable généré, mais n'est pas exécutée
+    feedback: Non, dès qu'on voit un dièse, c'est qu'on parle au préprocesseur.
+  - ko: ... fait partie de l'exécutable généré, et est exécutée
+    feedback: Non, dès qu'on voit un dièse, c'est qu'on parle au préprocesseur.
+
+- title: Intraitable avec les pointeurs
+  category: Passage de parametres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int f(int **a) {
+            int *p = *a, *tab = *a;
+            for(int i = 0; *p; p++, tab[i]++)
+                ;
+            return p - tab;
+        }
+
+        int main(void)
+        {
+            int raitable[10] = { 1, 2, 3, 4, 5, 6, 7, 8, -1, 0 };
+            printf("%d", f(&raitable));
+        }
+    </pre>
+    Le code ci-dessus...
+  answers:
+  - ok: segfaulte, du verbe segfaulter => je segfaulte, tu segfaultes, ...
+    feedback: Voilà. Pourquoi? Demandez à gdb! (ou à un prof qui traine, à défaut)
+  - ko: affiche le nombre d'entiers non nuls dans raitable
+    feedback: Non, sadly, ça segfaulte.
+  - ko: incrémente toutes les cases de raitable sauf la dernière
+    feedback: Non plus, toujours segfault.
+  - ko: incrémente la première case de raitable de 9
+    feedback: Segfault on t'a dit.
+
+- title: Qui veut mon poisson ?
+  category: Passage de parametres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        struct poisson {
+            char lotte;
+            char thon;
+        };
+
+        static void f(struct poisson *hane) {
+            hane->lotte -= hane->thon;
+        }
+
+        static void g(struct poisson hane) {
+            hane.thon -= hane.lotte;
+        }
+
+        int main(void)
+        {
+            struct poisson panier = {'F','D'};
+            f(XXX);
+            printf("%d %c", panier.lotte, panier.thon);
+            g(panier);
+            printf("%d %c", panier.lotte, panier.thon);
+        }
+    </pre>
+    Le code ci-dessus ...
+  answers:
+  - ok: affiche 2D2D si XXX vaut "&panier"
+    feedback: Vrai! On fait lotte = 'D' - 'F' = 2 d'abord (application de f()). L'application de la fonction g() sur panier n'a aucun effet, puisqu'on récupère une copie de panier dans la fonction g (passage par copie des paramètres en C).
+  - ko: affiche 2D2B si XXX vaut "&panier"
+    feedback: Non, g(panier) ne modifie pas panier.
+  - ko: affiche 15D15D si XXX vaut "&panier"
+    feedback: Euh... Non.
+  - ko: segfaulte si XXX vaut "&panier"
+    feedback: Non non, rien d'illicite là-dedans. Imbitable certes, mais pas illicite.
+
+- title: Enter the matrix
+  category: Passage de parametres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        static void f(void *arg) {
+            double **matrice = (double **)arg;
+            for (uint32_t i = 0; i < 32; i++) {
+                for (uint32_t j = 0; j < 32; j++) {
+                    printf("%lf ", matrice[i][j]);
+                }
+                printf("\\n");
+            }
+        }
+
+        static void g(void *arg) {
+            double **matrice = *(double ***)arg;
+            for (uint32_t i = 0; i < 32; i++) {
+                for (uint32_t j = 0; j < 32; j++) {
+                    printf("%lf ", matrice[i][j]);
+                }
+                printf("\\n");
+            }
+        }
+
+        static void h(void *arg) {
+            double *matrice = (double *)arg;
+            for (uint32_t i = 0; i < 32; i++) {
+                for (uint32_t j = 0; j < 32; j++) {
+                    printf("%lf ", matrice[32 * i + j]);
+                }
+                printf("\\n");
+            }
+        }
+    </pre>
+    Etant donnée une variable double matrice[32][32] correctement initialisée ...
+  answers:
+  - ko: ... f(matrice) affiche le contenu de la matrice ligne par ligne
+    feedback: Nan, essayez pour voir, et lancez gdb sur l'exécutable.
+  - ko: ... g(&matrice) affiche le contenu de la matrice ligne par ligne
+    feedback: Nan, essayez pour voir, et lancez gdb sur l'exécutable.
+  - ok: ... h(matrice) affiche le contenu de la matrice ligne par ligne
+    feedback: Nan, essayez pour voir, et lancez gdb sur l'exécutable.
+  - ok: ... les éléments de matrice sont stockés de manière contigue en mémoire
+    feedback: Vrai! Les tableaux déclarés sous la forme tab[N][M] sont alloués de manière contigue sur la pile (ou le tas, s'ils sont globaux).
+
+- title: Je connais le kung fu
+  category: Passage de parametres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        static void f(void *arg) {
+            double **matrice = (double **)arg;
+            for (uint32_t i = 0; i < 32; i++) {
+                for (uint32_t j = 0; j < 32; j++) {
+                    printf("%lf ", matrice[i][j]);
+                }
+                printf("\\n");
+            }
+        }
+
+        static void g(void *arg) {
+            double **matrice = *(double ***)arg;
+            for (uint32_t i = 0; i < 32; i++) {
+                for (uint32_t j = 0; j < 32; j++) {
+                    printf("%lf ", matrice[i][j]);
+                }
+                printf("\\n");
+            }
+        }
+
+        static void h(void *arg) {
+            double *matrice = (double *)arg;
+            for (uint32_t i = 0; i < 32; i++) {
+                for (uint32_t j = 0; j < 32; j++) {
+                    printf("%lf ", matrice[32 * i + j]);
+                }
+                printf("\\n");
+            }
+        }
+
+        ...
+
+        double **matrice = malloc(32 * sizeof(double *));
+        for (uint32_t i = 0; < 32; i++) {
+            matrice[i] = malloc(32 * sizeof(double));
+        }
+        </pre>
+    Etant donnée la variable matrice déclarée ci-dessus ...
+  answers:
+  - ok: ... f(matrice) affiche le contenu de la matrice ligne par ligne
+    feedback: Vrai! La matrice a été allouée par morceaux ici. Elle est stockée comme un tableau de pointeurs qui pointent vers des tableaux de 32 éléments représentant les lignes de la matrice.
+  - ok: ... g(&matrice) affiche le contenu de la matrice ligne par ligne
+    feedback: Vrai aussi! On passe l'adresse de matrice à la fonction g(), soit une variable de type double ***. Quand on la déréférence, on obtient le double **matrice original.
+  - ko: ... h(matrice) affiche le contenu de la matrice ligne par ligne
+    feedback: Faux! La matrice n'a pas été allouée de manière contigue ici.
+  - ko: ... les éléments de matrice sont stockés de manière contigue en mémoire
+    feedback: Non non, c'est bien ce qu'on dit.
+
+- title: Arg, ma cam
+  category: Passage de parametres
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int main(int argc, ?????? argv)
+        {
+            printf("%d %s %s", argc, argv[0], argv[1]);
+            return EXIT_SUCCESS;
+        }
+        </pre>
+    Après avoir remplacé les ?????? pour que ça compile, ce programme est compilé puis exécuté avec la commance ./toto titi tutu.
+    Cochez les affirmations vraies dans la liste ci-dessous ...
+  answers:
+  - ok: ?????? peut être remplacé par char **
+    feedback: Vrai! Le paramètre argv représente un tableau de mots, donc un tableau de tableaux de caractères.
+  - ok: ?????? peut être remplacé par char *[]
+    feedback: Vrai! Ca marche aussi, ça.
+  - ko: ?????? a été remplacé par char *
+    feedback: Nan, c'est un tableau de mots donc un tableau de char *.
+  - ok: '"3 ./toto titi" est affiché'
+    feedback: Vrai! argc est le nombre d'éléments du tableau argv. Le 1er élément de ce tableau est toujours le nom de l'exécutable. argc vaut bien 3 ici (l'exécutable + deux arguments)
+  - ko: '"2 titi tutu" est affiché'
+    feedback: Faux! argc vaut 3, argv contient { "./toto", "titi", "tutu" }
+  - ko: '"2 ./toto titi" est affiché'
+    feedback: Faux! argc vaut 3.
+
+- title: Des étoiles plein les mirettes
+  category: Pointeurs Complexes
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        struct cellule ***c;
+    </pre>
+    Etant donné le code ci-dessus ...
+  answers:
+  - ok: ... c peut contenir l'adresse d'un tableau de pointeurs de cellules
+    feedback: Vrai! Un pointeur de cellule = struct cellule *. Un tableau de pointeurs de cellules = struct cellule **. L'adresse d'un tableau de pointeur de cellule se stocke donc dans une variable de type struct cellule ***.
+  - ok: ... c[i] est un pointeur (pour i valide)
+    feedback: Vrai! c[i] est de type struct cellule **.
+  - ok: ... c[i][j] est un pointeur (pour i, j valides)
+    feedback: Vrai! c[i][j] est de type struct cellule *.
+  - ko: ... c[i][j][k] est un pointeur (pour i, j, k valides)
+    feedback: Faux! c[i][j][k] est de type struct cellule.
+
+- title: L'inter des pères
+  category: Pointeurs Complexes
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int main(void)
+        {
+            int er[10] = { 1, 2, 3, 4, 5, 6, 7, 8, -1, 0 };
+            int *p = er;
+            for(int i = 0; *p; p++, er[i]++)
+                ;
+            return p - er;
+        }
+        </pre>
+    Le code suivant ...
+  answers:
+  - ko: segfaulte
+    feedback: Nope, pas d'accès mémoire illicite ici. Demandez à valgrind, pour voir.
+  - ok: retourne 9
+    feedback: Vrai, on s'arrête dès que *p vaut 0, p aura avancé 9 fois et p - er vaudra 9.
+  - ko: incrémente toutes les cases de er sauf la dernière
+    feedback: Ben non, on incrémente jamais i.
+  - ok: incrémente la première case de er de la valeur de retour
+    feedback: Yes! On fait er[i]++ 9 fois, avec i qui vaut toujours 0.
+  - ko: retourne 9 * sizeof(int)
+    feedback: Et non! Arithmétique des pointeurs, tout ça.
+  - ko: retourne 8
+    feedback: Non non, 7 non plus, d'ailleurs. Et 10? Ben... Non plus.
+
+- title: What's up doc?
+  category: Pointeurs Complexes
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char *miam = "panais";
+        char *hop = &miam[0];
+        char **hophop = &hop;
+        char ***hophophop = &hophop;
+        char *miammiam = "carotte";
+        hop = &miammiam[0]
+    </pre>
+    Etant donné le simulateur de lapin fourni ci-dessus...
+  answers:
+  - ko: ... ***hophophop est la chaine de caractères "panais"
+    feedback: Raté! "panais" n'est plus accessible que par miam, ici.
+  - ko: ... ***hophophop est la chaine de caractères "carotte"
+    feedback: Nope, **hophophop est la chaine "carotte".
+  - ok: ... ***hophophop est le caractère 'c'
+    feedback: Bien vu!
+  - ko: ... ***hophophop segfaulte
+    feedback: Non non, tout va bien. Demandez à valgrind.
+
+- title: Hop hop hop!
+  category: Pointeurs Complexes
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char *miam = "carotte";
+        char *hop = NULL;
+        char **hophop = NULL;
+        char ***hophophop = NULL;
+    </pre>
+    On souhaite initialiser les variables ci-dessus de telle sorte que printf("%s\\n", **hophophop);
+    affiche "carotte".
+    Cochez les initialisations qui permettent d'obtenir ce résultat.
+  syntaxAnswer: pre
+  answers:
+  - ok: |
+        hophophop = &hophop;
+        hophop = &hop;
+        hop = &miam[0];
+    feedback: Bien joué!
+  - ok: |
+        hop = miam;
+        hophop = &hop;
+        hophophop = &hophop;
+    feedback: Oui oui, aussi.
+  - ko: |
+        hop = miam;
+        *hophop = hop;
+        *hophophop = hophop;
+    feedback: Ah non. Ca, ça segfaulte. *hophop alors que hophop n'est pas initialisé?
+  - ko: "**hophophop = miam;"
+    feedback: Et puis quoi encore?
+
+- title: Foo Ahh
+  category: Operations et fonctions sur pointeurs
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        int32_t tab[] = { 0, 1, 2, 3 };
+        int32_t *p = tab + 4;
+        printf("0x%x\\n", (uint32_t) p);
+    </pre>
+    En supposant que le tableau tab est à l'adresse 0xF000A000, qu'affiche le code ci-dessus ?
+  answers:
+  - ko: '0xF000A000'
+    feedback: Raté! La valeur de p est tab + 4, même si le C est parfois mystique, ça peut pas valoir tab!
+  - ko: '0xF000A004'
+    feedback: Haha. Non. Arithmétique des pointeurs, les amis! Quand on fait ptr + N, ça ajoute N * sizeof(*ptr) à la valeur de ptr. Ici, sizeof(*p) vaut 4, donc le +4 est en fait un +16 sur l'adresse.
+  - ok: '0xF000A010'
+    feedback: Voilà! Et c'est bien 10 parce qu'on est en base 16.
+  - ko: '0xF000A016'
+    feedback: Y'a d'l'idée, mais non. 0x indique qu'on est en base 16 ici (hexa), et 16 en décimal s'écrit 10 en hexa (1 * 16^1 + 0 * 16^0).
+  - ko: '0xF000A032'
+    feedback: Hein?
+  - ko: On ne peut pas savoir
+    feedback: Si on n'est pas prof d'archi, ptet pas, non.
+
+- title: Dégueu
+  category: Operations et fonctions sur pointeurs
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char acteres[] = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j' };
+        uint16_t *bacter = (uint16_t *)acteres;
+    </pre>
+    Etant donné le code ci-dessus...
+  answers:
+  - ok: '... *(((char *)bacter) + i) représente le i-ème élément du tableau acteres'
+    feedback: Oui! On convertit d'abord le pointeur en pointeur vers un char, son adresse reste la même. On récupère ensuite le charactère pointé par bacter + i, soit acteres[i].
+  - ko: '... bacter[i] représente le i-ème élément du tableau acteres'
+    feedback: Ah non. bacter[i] ça fait *(bacter + i), et bacter + i, ça prend la valeur de bacter (l'adresse de l'objet pointé) et ça lui ajoute i * sizeof(*bacter). *bacter étant de type uint16_t, ça ajoute donc 2*i, alors que le i-ème élément du tableau acteres se trouve en i.
+  - ko: '... bacter[i] == acteres[2*i] pour tout i valide sur une machine big endian'
+    feedback: Hum, presque. On peut dire que bacter + i et acteres + 2*i pointent vers le même objet en mémoire. Par contre, quand on fait bacter[i], on fait *(bacter + i). L'opérateur * va lire en mémoire sizeof(*bacter), soit 2 octets ici. De l'autre côté, *(acteres + 2*i) va lire en mémoire sizeof(*acteres), soit 1 octet. Et laissons les indiens de côté.
+  - ko: '... bacter[i] == acteres[i/2] pour tout i valide sur une machine little endian'
+    feedback: Non, là on n'a même plus l'égalité des adresses.
+  - ok: '... (char)bacter[i] == acteres[2*i] pour tout i valide sur une machine little endian'
+    feedback: Oui! Même remarque que deux items au-dessus, sauf que cette fois on transtype bacter[i] en char, ce qui a pour effet de tronquer sa valeur.
+
+- title: Cochon à la montagne
+  category: Operations et fonctions sur pointeurs
+  type: M
+  score: 1.0
+  description: |
+    <pre>
+        char *cuterie = "jambon de pays merveilleux";
+        uint32_t *desneiges = (uint32_t *)cuterie;
+    </pre>
+    Etant donné le code ci-dessus sur un PC (machine litte endian), on peut dire que :
+  answers:
+  - ok: desneiges[0] vaut ('b' << 24) + ('m' << 16) + ('a' << 8) + 'j'
+    feedback: Vrai! desneiges[0] est équivalent à *desneiges (mon coeur amoureuuux). *desneiges va lire sizeof(*desneiges) octets en mémoire, ici 4, correspondant aux 4 premières lettres de la chaine cuterie (jamb). Comme on est sur du little endian, l'octet de poids fort est stocké à la fin, et jamb se retrouve donc _à l'envers_ ici.
+  - ko: "*desneiges++ vaut ('o' << 24) + ('n' << 16) +  (' ' << 8) + 'd'"
+    feedback: Attention à *ptr++. Sans parenthésage, c'est équivalent à (*ptr)++ (priorité des opérateurs C).
+  - ko: "*++desneiges vaut ('o' << 24) + ('n' << 16) +  (' ' << 8) + 'd'"
+    feedback: Là c'est mieux, mais côté endianness, on n'est pas bons.
+  - ok: exécuter printf("%s", (char *)(desneiges + 3) - 2); juste après ce code afficherait "pays merveilleux"
+    feedback: Ouais, mais si vous écrivez un code comme ça à l'examen c'est 0. Si vous faites ça en entreprise, vos collègues vous parleront plus, non plus. desneiges + 3 avance l'adresse de 3 * sizeof(uint32_t). On se retrouve sur cuterie + 12. Ensuite, on repasse en char * et on fait -2, donc on retire 2 (octets) à l'adresse pointée (cuterie + 10). La chaine à afficher par printf commence donc à &cuterie[10], ce qui correspond à la chaine "pays merveilleux".
+
+- title: Gargamel
+  category: Operations et fonctions sur pointeurs
+  type: M
+  score: 1.0
+  description: |
+    Gargamel s'est construit un casier à schtroumphs pour conserver les schtroumphs qu'il a attrapés. Ce casier rectangulaire contient 6 cellules de long et 4 de large. Chaque cellule peut contenir plusieurs schtroumphs.
+
+    Dans le logiciel de gestion de son casier (écrit en C), les cellules sont des listes de schtroumphs (struct list) et il existe un type struct schtroumph.
+
+    Quelles sont les déclarations correctes pour le casier ?
+  answers:
+  - ko: struct schtroumph **casier[4][6];
+    feedback: Raté! Ici chaque cellule du casier contient un struct schtroumph **.
+  - ko: struct schtroumph **casier[6][4];
+    feedback: Pas mieux.
+  - ok: struct list *casier[6][4];
+    feedback: Ca marche! Indépendamment de ce qu'on met dans un struct list, on a ici un casier de 24 entrée, chacune contenant un struct list *.
+  - ko: struct list (*casier)[4][6];
+    feedback: Ok. Celle-là elle est pour Olivier Muller. Un grand type, cheveux courts, qui fait de l'archi. Vous le chopez, et vous lui dites tout ce que vous avez toujours eu envie de lui dire, même si votre éducation vous en empêche.
+  - ok: struct list ***casier;
+    feedback: Oh le chouette pointeur qui pointe sur rien!
+
+- title: Cacast
+  category: Type de donnees
+  score: 1.0
+  type: M
+  description: |
+      <pre>
+          static void f(void *arg) {
+              uint32_t x = (uint32_t)arg;
+              printf("%u\\n", x);
+          }
+
+          static void g(void *arg) {
+              uint32_t x = *(uint32_t *)arg;
+              printf("%u\\n", x);
+          }
+          </pre>
+      Soit une variable uint32_t x = 117. Pour que le programme affiche 117, on peut ...
+  answers:
+  - ok: '... exécuter f(x);'
+    feedback: Oui, mais c'est crade. Ca marche parce qu'un uint32_t ça tient dans un void * (de taille 32 ou 64 bits selon les archis). Du coup, ce que vous faites là, c'est que vous dites à votre compilateur je passe à la fonction f un pointeur dont la valeur (l'adresse pointée, quoi) est 117. Et une fois arrivé dans f, vous dites haha mais non en fait, c'était pas une adresse le truc, c'était un entier. J'ai le droit de caster arg en uint32_t pour récuperer sa valeur, du coup. Goujat.
+  - ko: '... exécuter g(x);'
+    feedback: Ca ca marche pas, parce que vous tentez de déréférencer un pointeur dont la valeur (l'adresse pointée) est 117.
+  - ko: '... exécuter f(&x);'
+    feedback: Non plus, ici vous passez l'adresse de la variable x, que vous mettez ensuite dans un entier dans le corps de la fonction.
+  - ok: '... exécuter g(&x);'
+    feedback: Oui! Vous passez l'adresse de la variable, et dans le corps de la fonction vous déréférencez cette adresse. Bien vu.
+
+- title: Chaussette et saucisse
+  category: Type de donnees
+  score: 1.0
+  type: M
+  description: |
+    <pre>
+        struct s
+        {
+            uint16_t sau;
+            uint16_t cho;
+        };
+
+        static void f(void *arg) {
+            uint16_t x = *(uint16_t *)arg;
+            printf("%u\\n", x);
+        }
+
+        static void g(void *arg) {
+            uint16_t x = *((uint16_t *)arg + 1);
+            printf("%u\\n", x);
+        }
+
+        int main(void)
+        {
+            struct s quizz = { .cho = 7, .sau = 6 };
+            f(&quizz);
+            g(&quizz);
+            return EXIT_SUCCESS;
+        }
+        </pre>
+    Quand on exécute ce programme ...
+  answers:
+  - ok: '... f(&quizz) affiche 6'
+    feedback: Vrai! Les champs d'une structure C sont rangés dans l'ordre de leur déclaration.
+  - ok: '... g(&quizz) affiche 7'
+    feedback: Vrai! Le compilateur s'autorise parfois à introduire du vide entre certains champs (padding), pour respecter des contraintes d'alignement mémoire et accélérer les accès. Typiquement, les types de base sont alignés sur un mulitple de leur taille. Ici, les deux variables sau et cho sont de même type, donc pas de problème d'alignement! On retrouve bien cho juste après sau, sans padding.
+  - ko: '... f(&quizz) affiche 7'
+    feedback: Non non, voir plus haut.
+  - ko: '... g(&quizz) affiche 6'
+    feedback: Pareil, voir encore plus haut.
+
+- title: Chaussisse et saucette
+  category: Type de donnees
+  score: 1.0
+  type: M
+  description: |
+    <pre>
+        struct s
+        {
+            uint16_t sau;
+            uint16_t cho;
+        };
+
+        static void f(void *arg) {
+            *(uint16_t *)arg = 6;
+        }
+
+        static void g(void *arg) {
+            *((uint16_t *)arg + 1) = 7;
+        }
+
+        int main(void)
+        {
+            struct s quizz;
+            f(&quizz);
+            g(&quizz);
+            printf("cho%u et sau%u\\n", quizz.cho, quizz.sau);
+
+            return EXIT_SUCCESS;
+        }
+        </pre>
+    Ce programme affiche ...
+  answers:
+  - ko: '... cho6 et sau7'
+    feedback: Raté. f modifie le premier champ de la structure et lui affecte la valeur 6. g fait pareil, mais affecte 7 au 2e champ. Dans le printf, on affiche d'abord le 2e champ, puis le premier. Ce serait donc cho7 et sau6.
+  - ok: '... cho7 et sau6'
+    feedback: Voilà. Comme j'ai dit.
+  - ko: '... cho6 et sau6'
+    feedback: Négatif.
+  - ko: '... segmentation fault'
+    feedback: Non non, pas d'accès mémoire illicite là-dedans!
+
+- title: Sauchisse et Sauchette
+  category: Type de donnees
+  score: 1.0
+  type: M 
+  description: |
+    <pre>
+        struct s
+        {
+            uint16_t sau;
+            uint16_t cho;
+        };
+
+        static void h(void *arg)
+        {
+            uint32_t x = *(uint32_t *)arg;
+            printf("%u\\n", x);
+        }
+
+        int main(void)
+        {
+            struct s quizz = { .cho = 7, .sau = 6 };
+            h(&quizz);
+
+            return EXIT_SUCCESS;
+        }
+        </pre>
+    Ce programme peut raisonnablement afficher...
+  answers:
+  - ko: '... 67'
+    feedback: Pas possible! On stocke la mémoire associée au struct s dans un uint32_t. Du coup, on a soit 7 + 6 << 16, soit 6 + 7 << 16 selon l'endianness.
+  - ok: '... 458758'
+    feedback: Oui, si on est dans le cas 6 + 7 << 16.
+  - ok: '... 393223'
+    feedback: Oui, si on est dans le cas 7 + 6 << 16.
+  - ko: '... segmentation fault'
+    feedback: Non. Au mieux, ça fait segfault dans nos têtes.
+
+syntax: null
