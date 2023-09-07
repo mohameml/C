@@ -1,0 +1,1 @@
+ceci pour garder le dossier obj, pourque la compiltion marche.
