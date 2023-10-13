@@ -1,0 +1,7 @@
+{
+    "C_Cpp.errorSquiggles": "disabled",
+    "files.associations": {
+        "*.java": "java",
+        "main2.C": "cpp"
+    }
+}
