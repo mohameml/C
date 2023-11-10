@@ -1,0 +1,73 @@
+\hypertarget{structNW__MemoContext}{}\doxysection{NW\+\_\+\+Memo\+Context Struct Reference}
+\label{structNW__MemoContext}\index{NW\_MemoContext@{NW\_MemoContext}}
+
+
+data for memoization of recursive Needleman-\/\+Wunsch algorithm  
+
+
+\doxysubsection*{Public Attributes}
+\begin{DoxyCompactItemize}
+\item 
+char $\ast$ \mbox{\hyperlink{structNW__MemoContext_a10d505f84736939a484806ed66545c3b}{X}}
+\item 
+char $\ast$ \mbox{\hyperlink{structNW__MemoContext_a82ae879510e3574191eb7e33181875ac}{Y}}
+\item 
+size\+\_\+t \mbox{\hyperlink{structNW__MemoContext_a855b063e77416201f7ddd6a4f2579b96}{M}}
+\item 
+size\+\_\+t \mbox{\hyperlink{structNW__MemoContext_addac186f134d062a0236b09283414826}{N}}
+\item 
+long $\ast$$\ast$ \mbox{\hyperlink{structNW__MemoContext_a6e0aeecac42abf096545c58236f45fc6}{memo}}
+\item 
+long $\ast$ \mbox{\hyperlink{structNW__MemoContext_a5ac3a8d8fb06893dd7dfeaba48126c20}{memo}}
+\item 
+\mbox{\Hypertarget{structNW__MemoContext_afaf2d43e57b92b158dfe5d3bcb11608f}\label{structNW__MemoContext_afaf2d43e57b92b158dfe5d3bcb11608f}} 
+long $\ast$ {\bfseries strip}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+data for memoization of recursive Needleman-\/\+Wunsch algorithm 
+
+\doxysubsection{Member Data Documentation}
+\mbox{\Hypertarget{structNW__MemoContext_a855b063e77416201f7ddd6a4f2579b96}\label{structNW__MemoContext_a855b063e77416201f7ddd6a4f2579b96}} 
+\index{NW\_MemoContext@{NW\_MemoContext}!M@{M}}
+\index{M@{M}!NW\_MemoContext@{NW\_MemoContext}}
+\doxysubsubsection{\texorpdfstring{M}{M}}
+{\footnotesize\ttfamily size\+\_\+t NW\+\_\+\+Memo\+Context\+::M}
+
+length of X \mbox{\Hypertarget{structNW__MemoContext_a6e0aeecac42abf096545c58236f45fc6}\label{structNW__MemoContext_a6e0aeecac42abf096545c58236f45fc6}} 
+\index{NW\_MemoContext@{NW\_MemoContext}!memo@{memo}}
+\index{memo@{memo}!NW\_MemoContext@{NW\_MemoContext}}
+\doxysubsubsection{\texorpdfstring{memo}{memo}\hspace{0.1cm}{\footnotesize\ttfamily [1/2]}}
+{\footnotesize\ttfamily long$\ast$$\ast$ NW\+\_\+\+Memo\+Context\+::memo}
+
+memoization table to store memo\mbox{[}0..M\mbox{]}\mbox{[}0..N\mbox{]} (including stopping conditions phi(\+M,j) and phi(i,\+N) \mbox{\Hypertarget{structNW__MemoContext_a5ac3a8d8fb06893dd7dfeaba48126c20}\label{structNW__MemoContext_a5ac3a8d8fb06893dd7dfeaba48126c20}} 
+\index{NW\_MemoContext@{NW\_MemoContext}!memo@{memo}}
+\index{memo@{memo}!NW\_MemoContext@{NW\_MemoContext}}
+\doxysubsubsection{\texorpdfstring{memo}{memo}\hspace{0.1cm}{\footnotesize\ttfamily [2/2]}}
+{\footnotesize\ttfamily long$\ast$ NW\+\_\+\+Memo\+Context\+::memo}
+
+memoization table to store memo\mbox{[}0..M\mbox{]}\mbox{[}0..N\mbox{]} (including stopping conditions phi(\+M,j) and phi(i,\+N) \mbox{\Hypertarget{structNW__MemoContext_addac186f134d062a0236b09283414826}\label{structNW__MemoContext_addac186f134d062a0236b09283414826}} 
+\index{NW\_MemoContext@{NW\_MemoContext}!N@{N}}
+\index{N@{N}!NW\_MemoContext@{NW\_MemoContext}}
+\doxysubsubsection{\texorpdfstring{N}{N}}
+{\footnotesize\ttfamily size\+\_\+t NW\+\_\+\+Memo\+Context\+::N}
+
+length of Y, N $<$= M \mbox{\Hypertarget{structNW__MemoContext_a10d505f84736939a484806ed66545c3b}\label{structNW__MemoContext_a10d505f84736939a484806ed66545c3b}} 
+\index{NW\_MemoContext@{NW\_MemoContext}!X@{X}}
+\index{X@{X}!NW\_MemoContext@{NW\_MemoContext}}
+\doxysubsubsection{\texorpdfstring{X}{X}}
+{\footnotesize\ttfamily char $\ast$ NW\+\_\+\+Memo\+Context\+::X}
+
+the longest genetic sequences \mbox{\Hypertarget{structNW__MemoContext_a82ae879510e3574191eb7e33181875ac}\label{structNW__MemoContext_a82ae879510e3574191eb7e33181875ac}} 
+\index{NW\_MemoContext@{NW\_MemoContext}!Y@{Y}}
+\index{Y@{Y}!NW\_MemoContext@{NW\_MemoContext}}
+\doxysubsubsection{\texorpdfstring{Y}{Y}}
+{\footnotesize\ttfamily char $\ast$ NW\+\_\+\+Memo\+Context\+::Y}
+
+the shortest genetic sequences 
+
+The documentation for this struct was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+src/\mbox{\hyperlink{Needleman-Wunsch-recmemo_8c}{Needleman-\/\+Wunsch-\/recmemo.\+c}}\item 
+src/Needleman-\/\+Wunsch-\/rec\+PD.\+c\end{DoxyCompactItemize}

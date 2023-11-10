@@ -1,0 +1,201 @@
+# Programme de vérification des sorties du programme
+A_TESTER= ../bin/distanceEdition 
+DIRTEST= .
+DIRBENCH=/matieres/4MMAOD6/2022-10-TP-AOD-ADN-Docs-fournis/2022-10-TP-AOD-ADN-Benchmark
+
+all: .test1.expected .test2.expected .test3.expected .test6.expected .test7.expected .test8.expected \
+.test9.expected .test10.expected .test11.expected .test12.expected .test4.expected .test13.expected \
+.test14.expected .test15.expected .test16.expected .test5.expected 
+
+all-valgrind: valgrind4perf1000.output valgrind4perf2000.output\
+valgrind4perf2000_1000.output valgrind4perf4000_1000.output valgrind4perf4000.output valgrind4perf6000.output \
+valgrind4perf8000.output valgrind4perf10000.output
+
+clean: 
+
+
+#######################################
+### Correction test 
+.test1.expected:  $(A_TESTER)
+	@echo "*******************************"
+	@echo "Test 1 : basic on small texts (should print 7) ..."
+	@echo "7" > .test1.expected 
+	$(A_TESTER) $(DIRTEST)/enonce-seq1 0 10 $(DIRTEST)/enonce-seq2 0 8  > test1.output
+	cat test1.output 
+	@diff  test1.output .test1.expected 
+	@echo "... test 1 passed !"
+	@echo "*******************************"
+
+.test2.expected:  $(A_TESTER) 
+	@echo "Test 2 : basic on small texts (should print 4) ..."
+	@echo "4" > .test2.expected 
+	$(A_TESTER) $(DIRTEST)/f1.fna 0 5 $(DIRTEST)/f2.fna 42 7 > test2.output
+	cat test2.output 
+	@diff  test2.output .test2.expected 
+	@echo "... test 2 passed !"
+	@echo "*******************************"
+
+.test3.expected:  $(A_TESTER) 
+	@echo "Test 3 : small texts truncated from real SARS-Cov2 sequences (should print 464)"
+	@echo "464" > .test3.expected 
+	$(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 0 1000 $(DIRTEST)/wuhan_hu_1.fasta 0 1234  > test3.output
+	cat test3.output 
+	@diff  test3.output .test3.expected 
+	@echo "... test 3 passed !"
+	@echo "*******************************"
+
+.test6.expected:
+	@echo "Test 6 : real SARS-Cov2 sequences,  size= 30 kB "
+	time $(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 1000 $(DIRTEST)/wuhan_hu_1.fasta 116 1000  > test6.output
+	cat test6.output
+
+.test7.expected:
+	@echo "Test 7 : real SARS-Cov2 sequences,  size= 30 kB "
+	time $(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 2000 $(DIRTEST)/wuhan_hu_1.fasta 116 1000  > test7.output
+	cat test7.output
+
+.test8.expected:
+	@echo "Test 8 : real SARS-Cov2 sequences,  size= 30 kB"
+	time $(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 4000 $(DIRTEST)/wuhan_hu_1.fasta 116 1000  > test8.output
+	cat test8.output
+
+.test9.expected:
+	@echo "Test 9 : real SARS-Cov2 sequences,  size= 30 kB "
+	time $(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 2000 $(DIRTEST)/wuhan_hu_1.fasta 116 2000  > test9.output
+	cat test9.output
+
+.test10.expected:
+	@echo "Test 10 : real SARS-Cov2 sequences,  size= 30 kB "
+	time $(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 4000 $(DIRTEST)/wuhan_hu_1.fasta 116 4000  > test10.output
+	cat test10.output
+
+.test11.expected:
+	@echo "Test 11 : real SARS-Cov2 sequences,  size= 30 kB "
+	time $(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 6000 $(DIRTEST)/wuhan_hu_1.fasta 116 6000  > test11.output
+	cat test11.output 
+
+.test12.expected:
+	@echo "Test 4 : real SARS-Cov2 sequences,  size= 30 kB "
+	time $(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 8000 $(DIRTEST)/wuhan_hu_1.fasta 116 8000  > test12.output
+	cat test12.output 
+
+.test4.expected:
+	@echo "Test 4 : real SARS-Cov2 sequences,  size= 30 kB (should print 369) ..."
+	@echo "369" > .test4.expected 
+	time $(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 30183 $(DIRTEST)/wuhan_hu_1.fasta 116 30331  > test4.output
+	cat test4.output 
+	@diff  test4.output .test4.expected 
+	@echo "... test 4 passed !"
+	@echo "*******************************"
+
+.test16.expected:
+	@echo "Test 16 : real sequences (Arabidopsis thaliana), size= 20 MBs ..."
+	$(A_TESTER)  \
+		$(DIRTEST)/GCA_024498555.1_ASM2449855v1_genomic.fna 77328790 10000 \
+		$(DIRTEST)/GCF_000001735.4_TAIR10.1_genomic.fna 30808129 10000 \
+		> test16.output 
+	cat test16.output 
+	@echo "*******************************"
+
+.test15.expected:
+	@echo "Test 15 : real sequences (Arabidopsis thaliana), size= 20 MBs ..."
+	$(A_TESTER)  \
+		$(DIRTEST)/GCA_024498555.1_ASM2449855v1_genomic.fna 77328790 20000 \
+		$(DIRTEST)/GCF_000001735.4_TAIR10.1_genomic.fna 30808129 20000 \
+		> test15.output 
+	cat test5.output 
+	@echo "*******************************"
+
+
+.test14.expected:
+	@echo "Test 14 : real sequences (Arabidopsis thaliana), size= 20 MBs ..."
+	$(A_TESTER)  \
+		$(DIRTEST)/GCA_024498555.1_ASM2449855v1_genomic.fna 77328790 30000 \
+		$(DIRTEST)/GCF_000001735.4_TAIR10.1_genomic.fna 30808129 30000 \
+		> test14.output 
+	cat test14.output 
+	@echo "*******************************"
+
+
+.test13.expected:
+	@echo "Test 13 : real sequences (Arabidopsis thaliana), size= 20 MBs ..."
+	$(A_TESTER)  \
+		$(DIRTEST)/GCA_024498555.1_ASM2449855v1_genomic.fna 77328790 40000 \
+		$(DIRTEST)/GCF_000001735.4_TAIR10.1_genomic.fna 30808129 40000 \
+		> test13.output 
+	cat test13.output 
+	@echo "*******************************"
+
+.test5.expected:
+	@echo "Test 5 : real sequences (Arabidopsis thaliana), size= 20 MBs (should print Killed or an error message) ..."
+	# echo "Killed" > .test5.expected 
+	$(A_TESTER)  \
+		$(DIRTEST)/GCA_024498555.1_ASM2449855v1_genomic.fna 77328790 20236404 \
+		$(DIRTEST)/GCF_000001735.4_TAIR10.1_genomic.fna 30808129 19944517 \
+		> test5.output 
+	cat test5.output 
+	# diff  test5.output .test5.expected 
+	@echo "... test 5 passed (but result not checked)"
+	@echo "*******************************"
+
+#######################################
+### Experimentation with valgrind
+
+valgrind4perf1000.output:
+	@echo "Test 4 perf : performance test (extracts from SARS-Cov2 sequences), size= 1000 Bytes"
+	time valgrind --tool=cachegrind --D1=4096,4,64	\
+		$(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 1000 $(DIRTEST)/wuhan_hu_1.fasta 116 1000  2> valgrind4perf1000.output
+	cat valgrind4perf1000.output
+	@echo "*******************************"
+
+valgrind4perf2000.output:
+	@@echo "Test 4 : performance test (extracts from SARS-Cov2 sequences), size= 2000 Bytes"
+	time valgrind --tool=cachegrind --D1=4096,4,64	\
+		$(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 2000 $(DIRTEST)/wuhan_hu_1.fasta 116 2000  2> valgrind4perf2000.output
+	cat valgrind4perf2000.output
+	@echo "*******************************"
+
+valgrind4perf10000.output:
+	@echo "Test 4 : performance test (extracts from SARS-Cov2 sequences), size= 10000 Bytes"
+	time valgrind --tool=cachegrind --D1=4096,4,64	\
+		$(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 10000 $(DIRTEST)/wuhan_hu_1.fasta 116 10000  2> valgrind4perf10000.output
+	cat valgrind4perf10000.output
+	@echo "*******************************"
+
+valgrind4perf2000_1000.output:
+	@echo "Test 4 perf : performance test (extracts from SARS-Cov2 sequences), size= 2000 Bytes"
+	time valgrind --tool=cachegrind --D1=4096,4,64	\
+		$(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 2000 $(DIRTEST)/wuhan_hu_1.fasta 116 1000  2> valgrind4perf2000_1000.output
+	cat valgrind4perf2000_1000.output
+	@echo "*******************************"
+
+valgrind4perf4000_1000.output:
+	@echo "Test 4 perf : performance test (extracts from SARS-Cov2 sequences), size= 4000 Bytes"
+	time valgrind --tool=cachegrind --D1=4096,4,64	\
+		$(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 4000 $(DIRTEST)/wuhan_hu_1.fasta 116 1000  2> valgrind4perf4000_1000.output
+	cat valgrind4perf4000_1000.output
+	@echo "*******************************"
+
+valgrind4perf4000.output:
+	@echo "Test 4 perf : performance test (extracts from SARS-Cov2 sequences), size= 4000 Bytes"
+	time valgrind --tool=cachegrind --D1=4096,4,64	\
+		$(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 4000 $(DIRTEST)/wuhan_hu_1.fasta 116 4000  2> valgrind4perf4000.output
+	cat valgrind4perf4000.output
+	@echo "*******************************"
+
+valgrind4perf6000.output:
+	@echo "Test 4 perf : performance test (extracts from SARS-Cov2 sequences), size= 6000 Bytes"
+	time valgrind --tool=cachegrind --D1=4096,4,64	\
+		$(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 6000 $(DIRTEST)/wuhan_hu_1.fasta 116 6000  2> valgrind4perf6000.output
+	cat valgrind4perf6000.output
+	@echo "*******************************"
+
+valgrind4perf8000.output:
+	@echo "Test 4 perf : performance test (extracts from SARS-Cov2 sequences), size= 8000 Bytes"
+	time valgrind --tool=cachegrind --D1=4096,4,64	\
+		$(A_TESTER) $(DIRTEST)/ba52_recent_omicron.fasta 153 1000 $(DIRTEST)/wuhan_hu_1.fasta 116 8000  2> valgrind4perf8000.output
+	cat valgrind4perf8000.output
+	@echo "*******************************"
+
+#######################################
+### Experimentation with perf

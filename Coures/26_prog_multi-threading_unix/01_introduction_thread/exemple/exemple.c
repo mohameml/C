@@ -11,7 +11,10 @@ void* routine()
     // pour montrer la parallélisme 
     sleep(3);
 
+
     printf("Ending thraed \n");
+
+    pthread_exit(NULL);
 }
 
 
@@ -30,6 +33,7 @@ int main(void)
         return EXIT_FAILURE;
     }
 
+    pthread_exit(0);
     if(pthread_join(t1,NULL)!=0)
     {
         return EXIT_FAILURE;
@@ -41,6 +45,6 @@ int main(void)
     }
 
 
-    return 0 ;
+    // return 0 ;
 
 }

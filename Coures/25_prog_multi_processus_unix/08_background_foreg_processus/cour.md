@@ -91,6 +91,5 @@ fg # return the main to foreground
 ![image](images/bg_fg.jpeg)
 
 
-## 4. handling Signal 
 
 

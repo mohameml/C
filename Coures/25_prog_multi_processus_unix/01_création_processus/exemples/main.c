@@ -17,9 +17,12 @@ int main(void)
     if(id==0)
     {
         printf("Hello from th processus child \n");
+        printf("My pid is : %d  \n", getpid());
     }
     else
     {
+        printf("the pid of my child is : %d \n" , id);
+
         printf("Hello from the processus main \n");
     }
 

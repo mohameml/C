@@ -148,3 +148,138 @@ int main() {
 }
 ```
 
+
+### 2.4 Récupérer la valeur de retour de la fonction  de ``Thread`` :
+
+
+- **Récupération de la valeur de retour :** Une fois que le thread est terminé, vous pouvez utiliser `pthread_join` pour attendre sa fin et récupérer la valeur de retour.
+
+
+- un exemple pour illustrer ces étapes :
+
+```c
+#include <stdio.h>
+#include <pthread.h>
+
+void *ma_fonction_thread(void *arg) {
+    int *valeur_retour = malloc(sizeof(int));
+    *valeur_retour = 42; // Définir une valeur de retour (dans cet exemple, 42)
+
+   return (void*)valeur_retour ;
+}
+
+int main() {
+    pthread_t thread;
+    int *resultat;
+
+    if (pthread_create(&thread, NULL, &ma_fonction_thread, NULL) != 0) {
+        perror("pthread_create");
+        return 1;
+    }
+
+    if (pthread_join(thread, (void **)&resultat) != 0) {
+        perror("pthread_join");
+        return 1;
+    }
+
+    printf("La valeur de retour du thread est : %d\n", *resultat);
+
+    free(resultat); // N'oubliez pas de libérer la mémoire allouée pour la valeur de retour
+
+    return 0;
+}
+```
+
+Dans cet exemple :
+
+- La fonction `ma_fonction_thread` est exécutée dans un thread. Elle alloue dynamiquement de la mémoire pour stocker la valeur de retour .
+
+- Dans la fonction `main`, nous créons un thread en appelant `pthread_create` et spécifions la fonction du thread (`ma_fonction_thread`) comme la fonction à exécuter dans le thread.
+
+- En utilisant `pthread_join`, nous attendons que le thread se termine et récupérons la valeur de retour renvoyée par le thread. La valeur de retour est stockée dans la variable `resultat`.
+
+- Assurez-vous de libérer la mémoire allouée pour la valeur de retour (dans cet exemple, nous utilisons `free`) une fois que vous avez récupéré la valeur.
+
+
+
+
+### 2.5 la fonction ``pthread_exit`` :
+
+- **Déscription :**
+
+    - La fonction `pthread_exit`  est utilisée pour terminer l'exécution d'un thread. 
+
+    - Cette fonction prend un argument qui peut être renvoyé au thread parent, s'il souhaite récupérer une valeur de retour du thread enfant.
+
+    - La fonction `pthread_exit` est couramment utilisée pour permettre à un thread de se terminer proprement et, éventuellement, de renvoyer une valeur à son parent
+
+
+- **la signature de la fonction `pthread_exit` :**
+
+    ```c
+    void pthread_exit(void *retval);
+    ```
+
+    - `retval` : C'est un pointeur vers la valeur que le thread souhaite renvoyer à son parent. Cette valeur peut être de n'importe quel type, car elle est de type `void *`. Si le thread n'a pas besoin de renvoyer de valeur, vous pouvez passer `NULL` comme argument.
+
+
+- **un exemple d'utilisation :**
+
+```c
+#include <stdio.h>
+#include <pthread.h>
+
+void *fonction_thread(void *arg) {
+    int *valeur = (int *)arg;
+    printf("Thread : J'ai reçu la valeur %d.\n", *valeur);
+    int resultat = 42;
+    pthread_exit(&resultat);
+}
+
+int main() {
+    pthread_t thread;
+    int valeur = 123;
+
+    if (pthread_create(&thread, NULL, fonction_thread, &valeur) != 0) {
+        perror("Erreur lors de la création du thread.");
+        return 1;
+    }
+
+    int *resultat;
+    pthread_join(thread, (void **)&resultat);
+
+    printf("Thread principal : Le thread fils a renvoyé %d.\n", *resultat);
+
+    pthread_exit(0);
+}
+```
+
+
+
+
+
+
+### RQ : la différance entre `Thread` et `Processus` :
+
+Les processus et les threads sont deux concepts fondamentaux dans le domaine de la programmation concurrente et parallèle, et ils sont utilisés pour accomplir des tâches simultanées. Voici les principales différences entre les processus et les threads :
+
+1. Définition :
+   - Processus : Un processus est un programme en cours d'exécution avec sa propre mémoire, son propre espace d'adressage et sa propre table de gestion des fichiers. Chaque processus est indépendant, ce qui signifie qu'ils ne partagent pas de mémoire sauf si cela est spécifiquement configuré (comme la mémoire partagée).
+   - Thread : Un thread (ou fil d'exécution) est une unité d'exécution plus légère qui fait partie d'un processus. Les threads d'un même processus partagent la même mémoire et les mêmes ressources du processus parent. Ils sont plus légers à créer et à gérer que les processus.
+
+2. Création et Terminaison :
+   - Processus : La création et la terminaison d'un processus sont plus lourdes en termes de ressources, car elles impliquent généralement la duplication de l'espace d'adressage du processus parent. Les processus sont indépendants les uns des autres.
+   - Thread : La création et la terminaison des threads sont plus légères, car ils partagent la même mémoire que le processus parent. Ils sont plus rapides à créer et à détruire que les processus.
+
+3. Communication et Synchronisation :
+   - Processus : La communication entre les processus est généralement plus complexe et nécessite l'utilisation de mécanismes tels que les tubes (pipes) ou les sockets pour partager des données. La synchronisation entre les processus peut également être complexe.
+   - Thread : Les threads d'un même processus peuvent communiquer et partager des données plus facilement car ils partagent la même mémoire. La synchronisation entre les threads est généralement plus simple, mais il est essentiel d'éviter les problèmes de concurrence et d'accès concurrent à la mémoire partagée.
+
+4. Fiabilité :
+   - Processus : Les processus sont plus fiables en cas de plantage, car un processus en échec ne devrait pas affecter les autres processus.
+   - Thread : Si un thread d'un processus plante, il peut potentiellement affecter tous les autres threads du même processus, car ils partagent la même mémoire.
+
+5. Parallélisme :
+   - Processus : Les processus peuvent être exécutés en parallèle sur des processeurs multiples, car ils sont indépendants les uns des autres.
+   - Thread : Les threads d'un processus peuvent être exécutés en parallèle, ce qui permet d'exploiter efficacement les processeurs multiples, mais cela nécessite une gestion appropriée de la concurrence.
+

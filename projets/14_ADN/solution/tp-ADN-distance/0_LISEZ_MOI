@@ -1,0 +1,22 @@
+Contient les élémets fournis pour le TP :
+
+- Makefile : compile et installe les exécutables, et lance les tests de verification 
+
+- src : sources
+NB: l'implémentation de trois fonctions itérative, cache_aware et cache olvious c'est fait dans le fichier Needlschman-Wunsch-recPD.c no a changé le makefile pour quil execute la fonction choisi parmi les trois fonctions on a laissé le cache Oblivious executé (la fonction EditDistance_NW_CO voir la ligne 237) pour changer le seuil il suffit de changer le 4iém paramétre.
+*pour changer en cache aware il suffit de chager la fonction  EditDistance_NW_CO
+ (ligne 237) à la fonction EditDistance_NW_CacheAw.
+ *IMPORTANT: pour changer à la fonction itérative il faut commenter les les deux lignes:
+ (ligne 231 et ligne 239) dans le fichier Needlschman-Wunsch-recPD.c et changer le nom de la fonction EditDistance_NW_CO à EditDistance_NW_PD n'oubliez pas d'enlevez le 4iém paramétre dans ce cas.
+
+- doc  : documentation des sources (générée par doxygen))	
+	make doc # genere la doc
+
+- tests : des tests de verification et avec valgrind.
+    make test # lance des tes de verification
+    make test-valgrind  # lance des tests de base avec valgrind
+
+- bin: compilation des fichiers source : taper : make binary
+
+IMPORTANT : /matieres/4MMAOD6/2022-10-TP-AOD-ADN-Benchmark est  le repertoire partagé qui contient 2 gros 
+    fichiers de 200 Mo au format FASTA utilisés  pour l'evaluation de vos livrables (inutile de les  recopier) 

@@ -5,6 +5,8 @@
 
 - En langage C, les signaux sont des mécanismes qui permettent aux processus de communiquer entre eux et avec le système d'exploitation. 
 
+- Les signaux sont des interruptions logicielles asynchrones envoyées à un processus pour indiquer un événement ou une condition particulière.
+ 
 - Les signaux sont utilisés pour notifier un processus de certains événements, tels que les interruptions, les erreurs, ou pour demander au processus de terminer son exécution. 
 
 
@@ -162,3 +164,84 @@ Dans cet exemple, nous utilisons `signal()` pour définir un gestionnaire de sig
 
 
 
+## 4. **La fonction `sigaction` :**
+
+
+- La fonction `sigaction` en C est utilisée pour gérer les signaux dans les programmes Unix-like. 
+
+ 
+- La fonction `sigaction` permet de spécifier comment un processus doit réagir lorsqu'il reçoit un signal spécifique. 
+ 
+ 
+
+- **la structure et l'utilisation de la fonction `sigaction` :**
+
+```c
+#include <signal.h>
+
+int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);
+```
+
+- `signum` est le numéro du signal que vous souhaitez gérer. Par exemple, `SIGINT` pour le signal d'interruption (généralement généré par Ctrl+C) ou `SIGTERM` pour le signal de terminaison.
+
+- `act` est un pointeur vers une structure `struct sigaction` qui spécifie le comportement souhaité lorsqu'un signal est reçu.
+
+- `oldact` est un pointeur vers une structure `struct sigaction` où les informations sur l'ancienne gestion du signal seront stockées. Si vous n'avez pas besoin de ces informations, vous pouvez passer NULL à cet argument.
+
+
+- **La structure `struct sigaction` :**
+
+```c
+struct sigaction {
+    void (*sa_handler)(int);          // Gestionnaire de signal
+    void (*sa_sigaction)(int, siginfo_t *, void *);  // Gestionnaire de signal alternatif
+    sigset_t sa_mask;                // Masque de signaux à bloquer pendant la gestion du signal
+    int sa_flags;                    // Drapeaux pour le comportement du signal
+    void (*sa_restorer)(void);       // Fonction de restauration de contexte (obsolète)
+};
+```
+
+- `sa_handler` est un pointeur vers la fonction de gestionnaire de signal qui sera appelée lorsque le signal est reçu. Vous pouvez définir une fonction personnalisée pour gérer le signal, par exemple, pour effectuer certaines actions lors de la réception du signal.
+
+- `sa_sigaction` est un pointeur vers une fonction de gestionnaire de signal alternatif qui prend en charge des informations supplémentaires sur le signal. Vous pouvez utiliser `sa_handler` ou `sa_sigaction`, en fonction de vos besoins.
+
+- `sa_mask` est un masque de signaux à bloquer pendant l'exécution du gestionnaire de signal. Cela peut empêcher la récursivité involontaire de signaux.
+
+- `sa_flags` est un ensemble de drapeaux qui contrôlent le comportement de la gestion du signal, tels que `SA_RESTART` pour redémarrer automatiquement les appels système interrompus par le signal.
+
+- `sa_restorer` est obsolète et n'est généralement pas utilisé.
+
+
+- un exemple simple de l'utilisation de `sigaction` pour gérer le signal SIGINT (Ctrl+C) :
+
+```c
+#include <stdio.h>
+#include <stdlib.h>
+#include <signal.h>
+
+void handler(int signum) {
+    printf("Signal %d reçu. Arrêt du programme.\n", signum);
+    exit(1);
+}
+
+int main() {
+    struct sigaction sa;
+    sa.sa_handler = handler;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_flags = 0;
+
+    if (sigaction(SIGINT, &sa, NULL) == -1) {
+        perror("sigaction");
+        return 1;
+    }
+
+    while (1) {
+        // Attendez que le signal SIGINT soit reçu
+    }
+
+    return 0;
+}
+```
+
+Ce programme définit un gestionnaire de signal personnalisé pour SIGINT et affiche un message avant de quitter lorsque le signal est reçu.
+   
