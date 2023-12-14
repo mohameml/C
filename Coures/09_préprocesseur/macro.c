@@ -7,6 +7,6 @@
 int main(void)
 {
 
-     BONJOUR ;
+    BONJOUR ;
     return 0 ;
 }

@@ -1,3 +1,5 @@
+#include <stdbool.h>
+
 #ifndef __LCH__
 #define __LCH__
 

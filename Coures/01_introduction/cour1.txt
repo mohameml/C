@@ -1,2 +1,0 @@
-gcc -o main.c hello # pour compiler le programme
-./hello # pour l'affichier

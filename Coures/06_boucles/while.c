@@ -23,7 +23,7 @@ int main(void)
     float U_0 = 1;
     int i = 1;
 
-    while (i <= n)
+    while (i <= n)  
     {
         U_0=1/(U_0+1);
         i++;
