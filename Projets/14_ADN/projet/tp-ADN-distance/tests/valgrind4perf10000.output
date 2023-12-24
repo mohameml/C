@@ -1,0 +1,31 @@
+==39372== Cachegrind, a cache and branch-prediction profiler
+==39372== Copyright (C) 2002-2017, and GNU GPL'd, by Nicholas Nethercote et al.
+==39372== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==39372== Command: ../bin/distanceEdition ./ba52_recent_omicron.fasta 153 10000 ./wuhan_hu_1.fasta 116 10000
+==39372== 
+--39372-- warning: L3 cache found, using its data for the LL simulation.
+--39372-- warning: specified LL cache: line_size 64  assoc 12  total_size 9,437,184
+--39372-- warning: simulated LL cache: line_size 64  assoc 18  total_size 9,437,184
+CAGGTAACAAACCAACCAAC...TACCTCTTACGCAATATAAT
+ATTAAAGGTTTATACCTTCC...GTTGCGTAGTGATGTGCTAT
+==39372== brk segment overflow in thread #1: can't grow to 0x484c000
+==39372== (see section Limitations in user manual)
+==39372== NOTE: further instances of this message will not be shown
+==39372== 
+==39372== I   refs:      21,651,748,799
+==39372== I1  misses:             1,551
+==39372== LLi misses:             1,538
+==39372== I1  miss rate:           0.00%
+==39372== LLi miss rate:           0.00%
+==39372== 
+==39372== D   refs:      12,186,745,572  (9,548,230,995 rd   + 2,638,514,577 wr)
+==39372== D1  misses:       501,716,897  (  206,290,434 rd   +   295,426,463 wr)
+==39372== LLd misses:       109,865,619  (   90,463,313 rd   +    19,402,306 wr)
+==39372== D1  miss rate:            4.1% (          2.2%     +          11.2%  )
+==39372== LLd miss rate:            0.9% (          0.9%     +           0.7%  )
+==39372== 
+==39372== LL refs:          501,718,448  (  206,291,985 rd   +   295,426,463 wr)
+==39372== LL misses:        109,867,157  (   90,464,851 rd   +    19,402,306 wr)
+==39372== LL miss rate:             0.3% (          0.3%     +           0.7%  )
+98.51user 0.67system 1:39.66elapsed 99%CPU (0avgtext+0avgdata 848196maxresident)k
+32inputs+384outputs (1major+216264minor)pagefaults 0swaps

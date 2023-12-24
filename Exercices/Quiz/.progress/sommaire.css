@@ -1,0 +1,62 @@
+/* ------------------
+ styling for the tables
+   ------------------   */
+
+#sommaire
+{
+	font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;
+	font-size: 14px;
+	background: #fff;
+	margin: 45px;
+	border-collapse: collapse;
+	text-align: left;
+}
+
+#sommaire th
+{
+	font-size: 14px;
+	font-weight: bold;
+	color: #039;
+	padding: 10px 8px;
+	border-bottom: 2px solid #6678b1;
+}
+
+#sommaire td
+{
+	color: #669;
+	padding: 10px 10px 10px 10px;
+	vertical-align: middle;
+}
+
+#sommaire a {
+    text-decoration: none;
+	color: black
+}
+
+#sommaire a:visited{
+	color: lightgrey
+}
+
+a#facile {
+	color: green
+}
+
+a:visited#facile {
+	color: #ccffcc
+}
+
+a#moyen {
+	color: orange
+}
+
+a:visited#moyen {
+	color: #ffedcc
+}
+
+a#dur {
+	color: red
+}
+
+a:visited#dur {
+	color: #ffcccc
+}

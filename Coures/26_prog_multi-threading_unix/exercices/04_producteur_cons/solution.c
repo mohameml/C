@@ -46,6 +46,7 @@ void* production()
    {
 
     pthread_mutex_lock(&mutex);
+    
 
     int x = rand() % 10;
     sleep(1); 

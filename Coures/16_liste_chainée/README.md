@@ -12,7 +12,7 @@ Chaque nœud contient une valeur (ou une donnée) et un pointeur (ou une référ
 <br>
 Le dernier nœud de la liste pointe vers une référence nulle pour indiquer la fin de la liste.
 
-![liste chainé](OIP.jpeg)
+![liste chainé](images/OIP.jpeg)
 
 <br>
 <br>

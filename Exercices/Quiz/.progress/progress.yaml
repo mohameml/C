@@ -912,7 +912,7 @@ base:
     questions:
       Agecanonix:
         answers:
-          0: wrong
+          0: correct
           1: wrong
           2: correct
           3: wrong
@@ -933,7 +933,7 @@ base:
           2: correct
           3: wrong
         category: Debug
-        score: 0
+        score: 2
       Alphabête:
         answers:
           0: wrong
@@ -1181,8 +1181,8 @@ base:
           1: correct
           2: correct
           3: correct
-          4: correct
-          5: wrong
+          4: wrong
+          5: correct
         category: Debug
         score: 5
       Tank à ski:
@@ -1262,7 +1262,7 @@ base:
           3: wrong
         category: Debug
         score: 0
-    score: 7
+    score: 9
     tot_score: 184
 carte:
   Chaines de caractères:

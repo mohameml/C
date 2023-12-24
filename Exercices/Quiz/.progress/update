@@ -1,0 +1,174 @@
+#! /usr/bin/env python3
+
+import yaml, sys, os
+
+from misc import push_files, try_pull
+from question import Question, QTYPES
+import gen_sommaire
+
+
+def get_parcours(exo, progress):
+    """
+    Retourne le nom du parcours associé à l'exo.
+    """
+    for parcours in ["base", "avance"]:
+        for e in progress[parcours]["exos"]:
+            if e == exo:
+                return parcours
+    return None
+
+
+def get_categorie(skill, progress):
+    """
+    Retourne le nom de la catégorie associée à la compétence.
+    """
+    for cat in progress["carte"]:
+        for s in progress["carte"][cat]:
+            if s == skill:
+                return cat
+    print("skill {} introuvable!".format(skill))
+    return None
+
+
+def main():
+
+    if len(sys.argv) != 2:
+        print("Usage: {} nom_exo".format(sys.argv[0]))
+        exit(1)
+
+    current_folder = os.path.dirname(sys.argv[0])
+
+    # On vérifie qu'on a le droit de pousser progress.yaml
+    # sans casser le dépôt. Sinon, on affiche un message
+    # explicite indiquant qu'il faut mettre à jour le dépôt
+    # local pour récupérer les modifications distantes.
+    try_pull("make progress")
+
+    progress = None
+    with open(os.path.join(current_folder, "progress.yaml"), "r") as progress_file:
+        progress = yaml.safe_load(progress_file)
+
+    exo = sys.argv[1]
+    parcours = get_parcours(exo, progress)
+    if not parcours:
+        print("Erreur fatale: exo {} introuvable!".format(exo))
+        exit(1)
+
+    p_exo = progress[parcours]["exos"][exo]
+    first_time = p_exo["etat"] == "todo"
+
+    comprehension = [
+        {"ok": "Je n'ai compris ni l'exercice ni la correction"},
+        {
+            "ok": "Je n'ai pas réussi à faire l'exercice mais je pense avoir compris la correction"
+        },
+        {
+            "ok": "J'étais pas loin d'avoir une solution qui fonctionne, je serais capable de le refaire sans aide"
+        },
+        {
+            "ok": "Ma solution fonctionnait, mais j'ai trouvé de quoi l'améliorer dans la correction"
+        },
+        {
+            "ok": "Ma solution répondait parfaitement au problème, je n'ai presque rien appris en lisant la correction"
+        },
+    ]
+
+    msg = (
+        "Vous avez terminé "
+        if first_time
+        else "Vous souhaitez mettre à jour votre appréciation de "
+    )
+    msg += "l'exo {}? ".format(exo)
+    msg += "Merci de choisir parmi les propositions ci-dessous celle qui correspond le mieux à votre ressenti."
+    items = [0 for _ in comprehension]
+    if p_exo["maitrise"]:
+        items[p_exo["maitrise"] - 1] = 1
+    q_capisce = Question(
+        QTYPES.SINGLE, "Compréhension de l'exo", msg, comprehension, picked_items=items
+    )
+    q_capisce.play(0, 0, feedback=False)
+
+    # Mise à jour de la maitrise
+    answers = q_capisce.picked_items
+    if sum(answers):
+        p_exo["maitrise"] = answers.index(1) + 1
+
+    note = [
+        {"ok": "Médiocre"},
+        {"ok": "Passable"},
+        {"ok": "Correct"},
+        {"ok": "Bien"},
+        {"ok": "Très bien"},
+    ]
+
+    items = [0 for _ in note]
+    if p_exo["love"]:
+        items[p_exo["love"] - 1] = 1
+    q_love = Question(
+        QTYPES.SINGLE,
+        "Appréciation de l'exo",
+        "Entre nous, vous l'avez trouvé comment, cet exo?",
+        note,
+        picked_items=items,
+    )
+    q_love.play(0, 0, feedback=False)
+
+    # Mise a jour de l'appréciation de l'exo
+    answers = q_love.picked_items
+    if sum(answers):
+        p_exo["love"] = answers.index(1) + 1
+
+    skill_list = [{"ok": s} for s in p_exo["skills"]]
+    skill_lvl = []
+    base_lvl = None
+    capisce = p_exo["maitrise"]
+    if capisce == 1:
+        base_lvl = 1
+    elif capisce in [2, 3]:
+        base_lvl = 2
+    elif capisce > 3:
+        base_lvl = 3
+    for s in p_exo["skills"]:
+        cat = get_categorie(s, progress)
+        old_lvl = progress["carte"][cat][s]
+        new_lvl = max(base_lvl, old_lvl)
+        skill_lvl.append(new_lvl)
+
+    q_skill = Question(
+        QTYPES.SKILL,
+        "Mise à jour des compétences",
+        "L'exo illustrait un certain nombre de compétences. En fonction de vos réponses, notre intelligence artificielle super sophistiquée a décidé de mettre à jour votre niveau de maitrise de chacune d'elle comme suit. Vous pouvez modifier le niveau de maitrise d'une compétence en saisissant son numéro.",
+        skill_list,
+        picked_items=skill_lvl,
+        footer="\nVous pouvez vous appuyer sur le barème suivant:\n\n  *     : Je comprends les concepts mais je manque de pratique\n  **    : J'ai déjà travaillé cette notion sur un exercice mais ne suis pas\n          arrivé à une solution satisfaisante\n  ***   : J'ai réussi au moins un exo qui traite de cette notion\n  ****  : Je peux facilement expliquer cette notion à quelqu'un\n  ***** : Je maitrise complètement cette notion",
+    )
+    q_skill.play(0, 0, feedback=False)
+
+    answers = q_skill.picked_items
+    for id, s in enumerate(p_exo["skills"]):
+        cat = get_categorie(s, progress)
+        progress["carte"][cat][s] = answers[id]
+
+    p_exo["etat"] = "done"
+
+    with open(os.path.join(current_folder, "progress.yaml"), "w") as yaml_file:
+        yaml.dump(
+            progress,
+            yaml_file,
+            default_flow_style=False,
+            allow_unicode=True,
+            encoding="utf-8",
+        )
+
+    gen_sommaire.gen(os.path.join(current_folder, "..", parcours))
+    files = [
+        os.path.join(current_folder, "progress.yaml"),
+        os.path.join(current_folder, "..", parcours, "sommaire.md"),
+    ]
+    push_files(files, "[progress] Exo {}".format(exo))
+
+    print("Progression enregistrée, merci!\n")
+
+
+if __name__ == "__main__":
+    main()

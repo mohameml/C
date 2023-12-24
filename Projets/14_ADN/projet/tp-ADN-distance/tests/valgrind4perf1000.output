@@ -1,0 +1,30 @@
+==39343== Cachegrind, a cache and branch-prediction profiler
+==39343== Copyright (C) 2002-2017, and GNU GPL'd, by Nicholas Nethercote et al.
+==39343== Using Valgrind-3.18.1 and LibVEX; rerun with -h for copyright info
+==39343== Command: ../bin/distanceEdition ./ba52_recent_omicron.fasta 153 1000 ./wuhan_hu_1.fasta 116 1000
+==39343== 
+--39343-- warning: L3 cache found, using its data for the LL simulation.
+--39343-- warning: specified LL cache: line_size 64  assoc 12  total_size 9,437,184
+--39343-- warning: simulated LL cache: line_size 64  assoc 18  total_size 9,437,184
+CAGGTAACAAACCAACCAAC...CACGGAACGTTCT
+GAAAAG
+ATTAAAGGTTTATACCTTCC...GAGCATGAAATTG
+CTTGGT
+==39343== 
+==39343== I   refs:      217,203,638
+==39343== I1  misses:          1,528
+==39343== LLi misses:          1,495
+==39343== I1  miss rate:        0.00%
+==39343== LLi miss rate:        0.00%
+==39343== 
+==39343== D   refs:      122,122,971  (95,679,797 rd   + 26,443,174 wr)
+==39343== D1  misses:      4,926,395  ( 2,046,797 rd   +  2,879,598 wr)
+==39343== LLd misses:        129,251  (     1,443 rd   +    127,808 wr)
+==39343== D1  miss rate:         4.0% (       2.1%     +       10.9%  )
+==39343== LLd miss rate:         0.1% (       0.0%     +        0.5%  )
+==39343== 
+==39343== LL refs:         4,927,923  ( 2,048,325 rd   +  2,879,598 wr)
+==39343== LL misses:         130,746  (     2,938 rd   +    127,808 wr)
+==39343== LL miss rate:          0.0% (       0.0%     +        0.5%  )
+1.22user 0.03system 0:01.29elapsed 97%CPU (0avgtext+0avgdata 39404maxresident)k
+14304inputs+368outputs (35major+13010minor)pagefaults 0swaps
